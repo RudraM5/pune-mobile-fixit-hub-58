@@ -23,17 +23,17 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
   ];
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <header className="border-b bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
-              <Phone className="h-5 w-5 text-primary-foreground" />
+          <Link to="/" className="flex items-center space-x-2 group">
+            <div className="h-8 w-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center group-hover:bg-white/30 transition-all">
+              <Phone className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">FixMyPhone</h1>
-              <p className="text-xs text-muted-foreground">Pune's #1 Mobile Repair</p>
+              <h1 className="text-xl font-bold text-white">FixMyPhone</h1>
+              <p className="text-xs text-white/80">Pune's #1 Mobile Repair</p>
             </div>
           </Link>
 
@@ -43,9 +43,10 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
               <Link
                 key={item.href}
                 to={item.href}
-                className="text-foreground hover:text-primary transition-colors font-medium"
+                className="text-white hover:text-yellow-300 transition-colors font-medium relative group"
               >
                 {item.label}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-yellow-300 transition-all duration-300 group-hover:w-full"></span>
               </Link>
             ))}
           </nav>
@@ -53,11 +54,11 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <Link to="/cart" className="relative">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Cart
                 {cartItems > 0 && (
-                  <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                  <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500">
                     {cartItems}
                   </Badge>
                 )}
@@ -68,16 +69,16 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
               <>
                 {isAdmin && (
                   <Link to="/admin">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
                       Admin Panel
                     </Button>
                   </Link>
                 )}
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-white/90">
                     Hi, {user?.name || 'User'}
                   </span>
-                  <Button variant="outline" size="sm" onClick={logout}>
+                  <Button variant="outline" size="sm" onClick={logout} className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
                     <LogOut className="h-4 w-4 mr-2" />
                     Logout
                   </Button>
@@ -85,7 +86,7 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
               </>
             ) : (
               <Link to="/login">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
                   <User className="h-4 w-4 mr-2" />
                   Login
                 </Button>
@@ -93,7 +94,7 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
             )}
             
             <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
-              <Button size="sm">
+              <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white shadow-lg">
                 WhatsApp Us
               </Button>
             </a>
@@ -102,7 +103,7 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
           {/* Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>

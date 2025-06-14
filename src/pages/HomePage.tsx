@@ -74,27 +74,28 @@ const HomePage = () => {
       <Header cartItems={0} />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary/10 via-primary/5 to-background py-20">
-        <div className="container mx-auto px-4">
+      <section className="hero-section py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/90 via-pink-500/90 to-orange-400/90"></div>
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <Badge variant="secondary" className="mb-4">
+            <Badge variant="secondary" className="mb-4 bg-white/20 backdrop-blur-sm text-white border-white/30">
               Pune's #1 Mobile Repair Service
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Fix Your Phone Today
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white animate-fade-in">
+              Fix Your Phone <span className="text-yellow-300">Today</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
               Professional mobile repair services with same-day fixes, genuine parts, and 6-month warranty. 
               Serving all of Pune with pickup & drop facility.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-bounce-in">
               <Link to="/book-repair">
-                <Button size="lg" className="text-lg px-8">
+                <Button size="lg" className="text-lg px-8 bg-white text-purple-600 hover:bg-white/90 shadow-xl animate-pulse-glow">
                   Book Repair Now
                 </Button>
               </Link>
               <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="lg" className="text-lg px-8">
+                <Button variant="outline" size="lg" className="text-lg px-8 bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
                   WhatsApp Us
                 </Button>
               </a>
@@ -104,12 +105,12 @@ const HomePage = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
+              <div key={index} className="text-center animate-float" style={{ animationDelay: `${index * 0.2}s` }}>
+                <div className="text-3xl md:text-4xl font-bold text-gradient mb-2">
                   {stat.number}
                 </div>
                 <div className="text-muted-foreground">{stat.label}</div>
@@ -132,10 +133,10 @@ const HomePage = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center transition-all hover:shadow-lg hover:scale-105">
+              <Card key={index} className="text-center transition-all hover:shadow-xl hover:scale-105 group glass-card">
                 <CardHeader>
-                  <div className="mx-auto h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-primary" />
+                  <div className="mx-auto h-12 w-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <feature.icon className="h-6 w-6 text-white" />
                   </div>
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
                 </CardHeader>
@@ -151,7 +152,7 @@ const HomePage = () => {
       </section>
 
       {/* Services Section */}
-      <section className="py-16 bg-muted/30">
+      <section className="py-16 bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -201,8 +202,8 @@ const HomePage = () => {
               { step: "3", title: "Repair", desc: "Expert technicians fix your device" },
               { step: "4", title: "Delivery", desc: "Get your repaired device back" }
             ].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="mx-auto h-16 w-16 bg-primary rounded-full flex items-center justify-center text-2xl font-bold text-primary-foreground mb-4">
+              <div key={index} className="text-center animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="mx-auto h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-2xl font-bold text-white mb-4 shadow-lg">
                   {item.step}
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
@@ -214,21 +215,22 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-primary">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
+      <section className="py-16 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Fix Your Phone?
           </h2>
-          <p className="text-primary-foreground/80 text-lg mb-8 max-w-2xl mx-auto">
+          <p className="text-white/90 text-lg mb-8 max-w-2xl mx-auto">
             Get a free quote and book your repair service today. Same-day service available!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/book-repair">
-              <Button size="lg" variant="secondary" className="text-lg px-8">
+              <Button size="lg" variant="secondary" className="text-lg px-8 bg-white text-purple-600 hover:bg-white/90 shadow-xl">
                 Book Now
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+            <Button size="lg" variant="outline" className="text-lg px-8 border-white text-white hover:bg-white hover:text-purple-600 shadow-lg">
               Call +91 98765 43210
             </Button>
           </div>
