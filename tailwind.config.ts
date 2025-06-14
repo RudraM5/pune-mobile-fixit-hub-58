@@ -61,7 +61,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				neon: {
+					cyan: 'rgb(var(--neon-cyan))',
+					pink: 'rgb(var(--neon-pink))',
+					lime: 'rgb(var(--neon-lime))'
+				},
+				electric: {
+					blue: 'rgb(var(--electric-blue))'
+				},
+				coral: 'rgb(var(--coral))',
+				golden: 'rgb(var(--golden))'
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -152,7 +162,11 @@ export default {
 				'slide-in': 'slide-in 0.5s ease-out',
 				'bounce-in': 'bounce-in 0.6s ease-out',
 				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-				'float': 'float 6s ease-in-out infinite'
+				'float': 'float 6s ease-in-out infinite',
+				'aurora': 'aurora 20s ease-in-out infinite',
+				'rainbow-text': 'rainbow-text 3s ease-in-out infinite',
+				'gradient-shift': 'gradient-shift 15s ease infinite',
+				'shimmer': 'shimmer 2s ease-in-out infinite'
 			}
 		}
 	},
