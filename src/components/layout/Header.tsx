@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Phone, ShoppingCart } from "lucide-react";
+import { Menu, Phone, ShoppingCart, User, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   cartItems?: number;
@@ -11,6 +12,7 @@ interface HeaderProps {
 
 const Header = ({ cartItems = 0 }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   const navItems = [
     { href: "/", label: "Home" },
@@ -61,11 +63,35 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
                 )}
               </Button>
             </Link>
-            <Link to="/admin">
-              <Button variant="outline" size="sm">
-                Admin
-              </Button>
-            </Link>
+            
+            {isAuthenticated ? (
+              <>
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="outline" size="sm">
+                      Admin Panel
+                    </Button>
+                  </Link>
+                )}
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">
+                    Hi, {user?.name || 'User'}
+                  </span>
+                  <Button variant="outline" size="sm" onClick={logout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button variant="outline" size="sm">
+                  <User className="h-4 w-4 mr-2" />
+                  Login
+                </Button>
+              </Link>
+            )}
+            
             <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
               <Button size="sm">
                 WhatsApp Us
@@ -99,11 +125,42 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
                       Cart ({cartItems})
                     </Button>
                   </Link>
-                  <Link to="/admin" onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" className="w-full">
-                      Admin Panel
-                    </Button>
-                  </Link>
+                  
+                  {isAuthenticated ? (
+                    <>
+                      {isAdmin && (
+                        <Link to="/admin" onClick={() => setIsOpen(false)}>
+                          <Button variant="outline" className="w-full">
+                            Admin Panel
+                          </Button>
+                        </Link>
+                      )}
+                      <div className="space-y-2">
+                        <div className="text-sm text-muted-foreground px-2">
+                          Logged in as {user?.name || 'User'}
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-start"
+                          onClick={() => {
+                            logout();
+                            setIsOpen(false);
+                          }}
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Logout
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <Link to="/login" onClick={() => setIsOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start">
+                        <User className="h-4 w-4 mr-2" />
+                        Login
+                      </Button>
+                    </Link>
+                  )}
+                  
                   <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
                     <Button className="w-full">
                       WhatsApp Us
