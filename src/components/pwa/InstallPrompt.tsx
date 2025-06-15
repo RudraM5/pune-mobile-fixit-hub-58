@@ -43,7 +43,7 @@ export function InstallPrompt() {
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-sm">Install FixMyPhone</h3>
+              <h3 className="font-semibold text-sm">Install Mobile Repairwala</h3>
               <Badge variant="secondary" className="text-xs">
                 PWA
               </Badge>

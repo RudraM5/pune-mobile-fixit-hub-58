@@ -149,7 +149,7 @@ const ContactPage = () => {
                   <Mail className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">support@fixmyphone.com</p>
+                    <p className="text-sm text-muted-foreground">support@mobilerepairwala.com</p>
                     <p className="text-xs text-green-600">Response within 2 hours</p>
                   </div>
                 </div>

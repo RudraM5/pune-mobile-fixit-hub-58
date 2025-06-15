@@ -1,5 +1,5 @@
-// Service Worker for FixMyPhone PWA
-const CACHE_NAME = 'fixmyphone-v1.0.0';
+// Service Worker for Mobile Repairwala PWA
+const CACHE_NAME = 'mobile-repairwala-v1.0.0';
 const OFFLINE_URL = '/offline.html';
 
 // Critical resources to cache immediately
@@ -164,7 +164,7 @@ async function handleHTMLRequest(request) {
       `<!DOCTYPE html>
       <html>
         <head>
-          <title>Offline - FixMyPhone</title>
+          <title>Offline - Mobile Repairwala</title>
           <style>
             body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
             .offline { color: #666; }
@@ -348,7 +348,7 @@ self.addEventListener('push', (event) => {
   };
   
   event.waitUntil(
-    self.registration.showNotification('FixMyPhone Update', options)
+    self.registration.showNotification('Mobile Repairwala Update', options)
   );
 });
 

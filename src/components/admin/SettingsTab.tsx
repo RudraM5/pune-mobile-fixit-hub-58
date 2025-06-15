@@ -32,7 +32,7 @@ const SettingsTab = () => {
               <h3 className="text-lg font-semibold">Contact Information</h3>
               <div className="space-y-2 text-sm">
                 <p>📞 +91 98765 43210</p>
-                <p>📧 info@fixmyphone.com</p>
+                <p>📧 info@mobilerepairwala.com</p>
                 <p>📍 Multiple locations in Pune</p>
                 <p>💬 WhatsApp support available</p>
               </div>

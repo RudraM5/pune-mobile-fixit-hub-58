@@ -171,7 +171,7 @@ const LoginPage = () => {
                 
                 <div className="text-center text-sm text-muted-foreground">
                   <p>Demo Admin Account:</p>
-                  <p>Email: admin@fixmyphone.com</p>
+                  <p>Email: admin@mobilerepairwala.com</p>
                   <p>Password: admin123</p>
                 </div>
               </form>

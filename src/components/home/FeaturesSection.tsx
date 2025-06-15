@@ -30,7 +30,7 @@ export function FeaturesSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 font-display animate-fade-in-up bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Why Choose FixMyPhone?
+            Why Choose Mobile Repairwala?
           </h2>
           <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             We're committed to providing the best mobile repair experience in Pune with cutting-edge technology and expert craftsmanship

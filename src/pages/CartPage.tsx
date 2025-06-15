@@ -211,7 +211,7 @@ const CartPage = () => {
               {/* Service Benefits */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Why Choose FixMyPhone?</CardTitle>
+                  <CardTitle>Why Choose Mobile Repairwala?</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

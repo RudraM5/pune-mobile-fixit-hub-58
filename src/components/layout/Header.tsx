@@ -34,7 +34,7 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
               <Phone className="h-5 w-5 text-primary-foreground transition-transform duration-300 group-hover:rotate-12" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground font-heading">FixMyPhone</h1>
+              <h1 className="text-xl font-bold text-foreground font-heading">Mobile Repairwala</h1>
               <p className="text-xs text-muted-foreground">Pune's #1 Mobile Repair</p>
             </div>
           </Link>

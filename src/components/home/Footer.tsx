@@ -9,7 +9,7 @@ export function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <Phone className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">FixMyPhone</span>
+              <span className="text-xl font-bold">Mobile Repairwala</span>
             </div>
             <p className="text-muted-foreground">
               Pune's most trusted mobile repair service with 10,000+ satisfied customers.
@@ -28,7 +28,7 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-muted-foreground">
               <li>+91 98765 43210</li>
-              <li>info@fixmyphone.com</li>
+              <li>info@mobilerepairwala.com</li>
               <li>Pune, Maharashtra</li>
               <li>24/7 Support</li>
             </ul>
@@ -44,7 +44,7 @@ export function Footer() {
           </div>
         </div>
         <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
-          <p>&copy; 2024 FixMyPhone. All rights reserved. | Made with ❤️ in Pune</p>
+          <p>&copy; 2024 Mobile Repairwala. All rights reserved. | Made with ❤️ in Pune</p>
         </div>
       </div>
     </footer>

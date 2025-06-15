@@ -132,7 +132,7 @@ export function usePWA() {
 
   const shareApp = async (data?: { title?: string; text?: string; url?: string }) => {
     const shareData = {
-      title: data?.title || 'FixMyPhone - Mobile Repair Service',
+      title: data?.title || 'Mobile Repairwala - Mobile Repair Service',
       text: data?.text || 'Professional mobile repair services in Pune with same-day fixes and 6-month warranty.',
       url: data?.url || window.location.origin
     };
