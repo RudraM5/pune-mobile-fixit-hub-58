@@ -28,10 +28,7 @@ const AdminPanel = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <OverviewTab 
-              analytics={mockAnalytics} 
-              recentRequests={mockRepairRequests} 
-            />
+            <OverviewTab />
           </TabsContent>
 
           <TabsContent value="requests">
