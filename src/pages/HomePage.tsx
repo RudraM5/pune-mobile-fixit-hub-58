@@ -18,6 +18,7 @@ import { LiveChatWidget } from "@/components/interactive/LiveChatWidget";
 import { LiveRepairCounter } from "@/components/interactive/LiveRepairCounter";
 import { PricingCalculator } from "@/components/interactive/PricingCalculator";
 import { RealtimeNotifications } from "@/components/realtime/RealtimeNotifications";
+import { InstallPrompt, OfflineIndicator } from "@/components/pwa/InstallPrompt";
 import { reviews, technicians, beforeAfterGallery, videoTestimonials } from "@/data/reviewsData";
 
 const HomePage = () => {
@@ -155,6 +156,8 @@ const HomePage = () => {
       <Footer />
       <LiveChatWidget />
       <RealtimeNotifications />
+      <InstallPrompt />
+      <OfflineIndicator />
     </div>
   );
 };
