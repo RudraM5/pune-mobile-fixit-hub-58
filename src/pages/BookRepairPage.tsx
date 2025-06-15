@@ -9,12 +9,16 @@ import BookingCart from "@/components/booking/BookingCart";
 import { useBookingCart } from "@/hooks/useBookingCart";
 import { useCustomerInfo } from "@/hooks/useCustomerInfo";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { MobileDevice } from "@/types/booking";
 
 const BookRepairPage = () => {
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
   const [selectedDevice, setSelectedDevice] = useState<MobileDevice | null>(null);
   const [activeTab, setActiveTab] = useState("device");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const {
     cart,
@@ -41,7 +45,7 @@ const BookRepairPage = () => {
     });
   };
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!selectedDevice || cart.length === 0) {
       toast({
         title: "Incomplete booking",
@@ -60,17 +64,165 @@ const BookRepairPage = () => {
       return;
     }
 
-    // Here you would typically send the booking data to your backend
-    toast({
-      title: "Booking confirmed!",
-      description: "We'll contact you shortly to confirm the pickup time",
-    });
+    setIsSubmitting(true);
 
-    // Reset form
-    setSelectedDevice(null);
-    clearCart();
-    resetCustomerInfo();
-    setActiveTab("device");
+    try {
+      // First, ensure the customer exists or create one
+      let customerId: string;
+      
+      if (isAuthenticated && user) {
+        // Check if customer record exists for this user
+        const { data: existingCustomer } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        } else {
+          // Create new customer record
+          const { data: newCustomer, error: customerError } = await supabase
+            .from('customers')
+            .insert({
+              user_id: user.id,
+              name: customerInfo.name,
+              phone: customerInfo.phone,
+              email: customerInfo.email,
+              address: customerInfo.address
+            })
+            .select('id')
+            .single();
+
+          if (customerError) throw customerError;
+          customerId = newCustomer.id;
+        }
+      } else {
+        // Create guest customer record
+        const { data: newCustomer, error: customerError } = await supabase
+          .from('customers')
+          .insert({
+            name: customerInfo.name,
+            phone: customerInfo.phone,
+            email: customerInfo.email,
+            address: customerInfo.address
+          })
+          .select('id')
+          .single();
+
+        if (customerError) throw customerError;
+        customerId = newCustomer.id;
+      }
+
+      // Find the device in the database
+      const { data: device, error: deviceError } = await supabase
+        .from('devices')
+        .select('id')
+        .eq('brand', selectedDevice.brand)
+        .eq('model', selectedDevice.model)
+        .single();
+
+      if (deviceError || !device) {
+        // Create the device if it doesn't exist
+        const { data: newDevice, error: newDeviceError } = await supabase
+          .from('devices')
+          .insert({
+            brand: selectedDevice.brand,
+            model: selectedDevice.model,
+            category: 'smartphone'
+          })
+          .select('id')
+          .single();
+
+        if (newDeviceError) throw newDeviceError;
+        device.id = newDevice.id;
+      }
+
+      // Create the repair request
+      const totalAmount = getTotalPrice();
+      const estimatedCompletion = new Date();
+      estimatedCompletion.setHours(estimatedCompletion.getHours() + 24); // 24 hours from now
+
+      const { data: repairRequest, error: repairError } = await supabase
+        .from('repair_requests')
+        .insert({
+          customer_id: customerId,
+          device_id: device.id,
+          status: 'pending',
+          priority: 'medium',
+          description: `Repair request for ${selectedDevice.brand} ${selectedDevice.model}`,
+          estimated_completion: estimatedCompletion.toISOString(),
+          total_amount: totalAmount
+        })
+        .select('id')
+        .single();
+
+      if (repairError) throw repairError;
+
+      // Add services to the repair request
+      const serviceInserts = await Promise.all(
+        cart.map(async (cartItem) => {
+          // Find the service in database
+          const { data: service } = await supabase
+            .from('services')
+            .select('id')
+            .eq('name', cartItem.service.name)
+            .single();
+
+          if (service) {
+            return {
+              repair_request_id: repairRequest.id,
+              service_id: service.id,
+              quantity: cartItem.quantity,
+              price: cartItem.service.price
+            };
+          }
+          return null;
+        })
+      );
+
+      const validServiceInserts = serviceInserts.filter(Boolean);
+      
+      if (validServiceInserts.length > 0) {
+        const { error: servicesError } = await supabase
+          .from('repair_request_services')
+          .insert(validServiceInserts);
+
+        if (servicesError) throw servicesError;
+      }
+
+      // Create initial status update
+      await supabase
+        .from('status_updates')
+        .insert({
+          repair_request_id: repairRequest.id,
+          old_status: null,
+          new_status: 'pending',
+          message: 'Repair request submitted successfully',
+          created_by: user?.id || null
+        });
+
+      toast({
+        title: "Booking confirmed!",
+        description: `Request #${repairRequest.id.substring(0, 8)} created. We'll contact you shortly.`,
+      });
+
+      // Reset form
+      setSelectedDevice(null);
+      clearCart();
+      resetCustomerInfo();
+      setActiveTab("device");
+
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast({
+        title: "Booking failed",
+        description: "There was an error processing your booking. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -127,6 +279,7 @@ const BookRepairPage = () => {
               selectedDevice={selectedDevice}
               onRemoveFromCart={removeFromCart}
               onBooking={handleBooking}
+              isSubmitting={isSubmitting}
             />
           </div>
         </div>

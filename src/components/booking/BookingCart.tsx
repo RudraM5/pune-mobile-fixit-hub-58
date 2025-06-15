@@ -11,6 +11,7 @@ interface BookingCartProps {
   selectedDevice: MobileDevice | null;
   onRemoveFromCart: (serviceId: string) => void;
   onBooking: () => void;
+  isSubmitting?: boolean;
 }
 
 const BookingCart = ({ 
@@ -19,7 +20,8 @@ const BookingCart = ({
   totalPrice, 
   selectedDevice, 
   onRemoveFromCart, 
-  onBooking 
+  onBooking,
+  isSubmitting = false
 }: BookingCartProps) => {
   return (
     <Card className="sticky top-24">
@@ -81,9 +83,9 @@ const BookingCart = ({
             <Button 
               className="w-full" 
               onClick={onBooking}
-              disabled={!selectedDevice || cart.length === 0}
+              disabled={!selectedDevice || cart.length === 0 || isSubmitting}
             >
-              Book Repair Service
+              {isSubmitting ? 'Processing...' : 'Book Repair Service'}
             </Button>
 
             <div className="space-y-2 text-xs text-muted-foreground">

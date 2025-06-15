@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/layout/Header";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Clock, 
   CheckCircle, 
@@ -21,7 +23,7 @@ interface RepairStatus {
   id: string;
   deviceName: string;
   services: string[];
-  status: "received" | "diagnosed" | "repairing" | "testing" | "completed" | "ready-for-pickup" | "delivered";
+  status: "pending" | "in-progress" | "completed" | "delivered";
   progress: number;
   createdAt: string;
   estimatedCompletion: string;
@@ -35,98 +37,141 @@ interface RepairStatus {
 }
 
 const UserDashboard = () => {
-  // Mock user data - in real app this would come from authentication
-  const [userRepairs] = useState<RepairStatus[]>([
-    {
-      id: "REP001",
-      deviceName: "iPhone 15 Pro",
-      services: ["Screen Replacement", "Battery Replacement"],
-      status: "repairing",
-      progress: 60,
-      createdAt: "2024-01-15T10:30:00Z",
-      estimatedCompletion: "2024-01-15T16:00:00Z",
-      technician: "Amit Kumar",
-      totalAmount: 2700,
-      trackingUpdates: [
-        {
-          status: "received",
-          message: "Device received at our service center",
-          timestamp: "2024-01-15T10:30:00Z"
-        },
-        {
-          status: "diagnosed",
-          message: "Initial diagnosis completed. Issues confirmed: Cracked screen, battery degradation",
-          timestamp: "2024-01-15T11:15:00Z"
-        },
-        {
-          status: "repairing",
-          message: "Screen replacement in progress. Technician: Amit Kumar",
-          timestamp: "2024-01-15T12:00:00Z"
-        }
-      ]
-    },
-    {
-      id: "REP002",
-      deviceName: "Samsung Galaxy S23",
-      services: ["Water Damage Treatment"],
-      status: "completed",
-      progress: 100,
-      createdAt: "2024-01-12T09:00:00Z",
-      estimatedCompletion: "2024-01-13T15:00:00Z",
-      technician: "Suresh Reddy",
-      totalAmount: 2500,
-      trackingUpdates: [
-        {
-          status: "received",
-          message: "Device received - water damage reported",
-          timestamp: "2024-01-12T09:00:00Z"
-        },
-        {
-          status: "diagnosed",
-          message: "Extensive water damage found. Motherboard and components affected",
-          timestamp: "2024-01-12T10:30:00Z"
-        },
-        {
-          status: "repairing",
-          message: "Water damage treatment started. Cleaning and drying process initiated",
-          timestamp: "2024-01-12T14:00:00Z"
-        },
-        {
-          status: "testing",
-          message: "Repair completed. Device testing in progress",
-          timestamp: "2024-01-13T11:00:00Z"
-        },
-        {
-          status: "completed",
-          message: "All tests passed! Device is working perfectly. Ready for pickup",
-          timestamp: "2024-01-13T14:30:00Z"
-        }
-      ]
+  const { user, isAuthenticated } = useAuth();
+  const [userRepairs, setUserRepairs] = useState<RepairStatus[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchUserRepairs();
+    } else {
+      setLoading(false);
     }
-  ]);
+  }, [isAuthenticated, user]);
+
+  const fetchUserRepairs = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('repair_requests')
+        .select(`
+          id,
+          status,
+          priority,
+          created_at,
+          estimated_completion,
+          total_amount,
+          description,
+          customers!inner(name, phone, user_id),
+          devices!inner(brand, model),
+          technicians(name),
+          repair_request_services!inner(
+            services!inner(name)
+          ),
+          status_updates(
+            old_status,
+            new_status,
+            message,
+            created_at
+          )
+        `)
+        .eq('customers.user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedRepairs = data?.map(request => {
+        const progress = getProgressFromStatus(request.status);
+        return {
+          id: request.id.substring(0, 8),
+          deviceName: `${request.devices.brand} ${request.devices.model}`,
+          services: request.repair_request_services.map((rrs: any) => rrs.services.name),
+          status: request.status as "pending" | "in-progress" | "completed" | "delivered",
+          progress,
+          createdAt: request.created_at,
+          estimatedCompletion: request.estimated_completion,
+          technician: request.technicians?.name || 'To be assigned',
+          totalAmount: request.total_amount,
+          trackingUpdates: request.status_updates.map((update: any) => ({
+            status: update.new_status,
+            message: update.message,
+            timestamp: update.created_at
+          })).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+        };
+      }) || [];
+
+      setUserRepairs(formattedRepairs);
+    } catch (error) {
+      console.error('Error fetching user repairs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProgressFromStatus = (status: string) => {
+    const statusMap = {
+      "pending": 20,
+      "in-progress": 60,
+      "completed": 100,
+      "delivered": 100
+    };
+    return statusMap[status as keyof typeof statusMap] || 0;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p>Loading your repairs...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="text-center py-12">
+              <h3 className="text-lg font-semibold mb-2">Please Login</h3>
+              <p className="text-muted-foreground mb-4">
+                You need to be logged in to view your repair requests.
+              </p>
+              <Button>
+                Login to View Repairs
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusInfo = (status: string) => {
     const statusMap = {
-      "received": { label: "Received", color: "bg-blue-500", icon: Package },
-      "diagnosed": { label: "Diagnosed", color: "bg-yellow-500", icon: Clock },
-      "repairing": { label: "Repairing", color: "bg-orange-500", icon: Wrench },
-      "testing": { label: "Testing", color: "bg-purple-500", icon: CheckCircle },
+      "pending": { label: "Pending", color: "bg-blue-500", icon: Package },
+      "in-progress": { label: "In Progress", color: "bg-orange-500", icon: Wrench },
       "completed": { label: "Completed", color: "bg-green-500", icon: CheckCircle },
-      "ready-for-pickup": { label: "Ready for Pickup", color: "bg-green-600", icon: Package },
       "delivered": { label: "Delivered", color: "bg-gray-500", icon: CheckCircle }
     };
     
-    return statusMap[status as keyof typeof statusMap] || statusMap.received;
+    return statusMap[status as keyof typeof statusMap] || statusMap.pending;
   };
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      "received": "secondary",
-      "diagnosed": "default",
-      "repairing": "default", 
-      "testing": "secondary",
+      "pending": "secondary",
+      "in-progress": "default", 
       "completed": "default",
-      "ready-for-pickup": "default",
       "delivered": "secondary"
     } as const;
     
@@ -185,12 +230,12 @@ const UserDashboard = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-xl">{repair.deviceName}</CardTitle>
-                        <CardDescription>Request ID: {repair.id}</CardDescription>
+                        <CardDescription>Request ID: #{repair.id}</CardDescription>
                       </div>
                       <div className="text-right">
                         {getStatusBadge(repair.status)}
                         <p className="text-sm text-muted-foreground mt-1">
-                          ₹{repair.totalAmount}
+                          ₹{repair.totalAmount.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -303,12 +348,12 @@ const UserDashboard = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-xl">{repair.deviceName}</CardTitle>
-                        <CardDescription>Request ID: {repair.id}</CardDescription>
+                        <CardDescription>Request ID: #{repair.id}</CardDescription>
                       </div>
                       <div className="text-right">
                         {getStatusBadge(repair.status)}
                         <p className="text-sm text-muted-foreground mt-1">
-                          ₹{repair.totalAmount}
+                          ₹{repair.totalAmount.toLocaleString()}
                         </p>
                       </div>
                     </div>

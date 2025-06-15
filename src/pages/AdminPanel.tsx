@@ -32,7 +32,7 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="requests">
-            <RequestsTab requests={mockRepairRequests} />
+            <RequestsTab />
           </TabsContent>
 
           <TabsContent value="analytics">
