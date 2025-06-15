@@ -14,6 +14,9 @@ import { ServicesSection } from "@/components/home/ServicesSection";
 import { ProcessSection } from "@/components/home/ProcessSection";
 import { CTASection } from "@/components/home/CTASection";
 import { Footer } from "@/components/home/Footer";
+import { LiveChatWidget } from "@/components/interactive/LiveChatWidget";
+import { LiveRepairCounter } from "@/components/interactive/LiveRepairCounter";
+import { PricingCalculator } from "@/components/interactive/PricingCalculator";
 import { reviews, technicians, beforeAfterGallery, videoTestimonials } from "@/data/reviewsData";
 
 const HomePage = () => {
@@ -126,23 +129,30 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Social Proof & Live Activity */}
-      <section className="py-16">
+      {/* Interactive Tools & Live Activity */}
+      <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading">
-              Live from Our Service Centers
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-display bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Interactive Repair Experience
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Real-time updates from our active repair operations
+              Get instant quotes, track live repairs, and chat with experts
             </p>
           </div>
-          <SocialProofSection />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <PricingCalculator />
+            <LiveRepairCounter />
+            <div className="lg:col-span-1">
+              <SocialProofSection />
+            </div>
+          </div>
         </div>
       </section>
 
       <CTASection />
       <Footer />
+      <LiveChatWidget />
     </div>
   );
 };
