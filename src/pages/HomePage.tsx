@@ -80,21 +80,21 @@ const HomePage = () => {
             <Badge variant="secondary" className="mb-4">
               Pune's #1 Mobile Repair Service
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent font-heading animate-fade-in">
               Fix Your Phone Today
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '200ms' }}>
               Professional mobile repair services with same-day fixes, genuine parts, and 6-month warranty. 
               Serving all of Pune with pickup & drop facility.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: '400ms' }}>
               <Link to="/book-repair">
-                <Button size="lg" className="text-lg px-8">
+                <Button size="lg" className="text-lg px-8 transition-all duration-300 hover:scale-105 hover:shadow-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
                   Book Repair Now
                 </Button>
               </Link>
               <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="lg" className="text-lg px-8">
+                <Button variant="outline" size="lg" className="text-lg px-8 transition-all duration-300 hover:scale-105 hover:shadow-lg">
                   WhatsApp Us
                 </Button>
               </a>
@@ -123,7 +123,7 @@ const HomePage = () => {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading animate-fade-in">
               Why Choose FixMyPhone?
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -132,12 +132,12 @@ const HomePage = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center transition-all hover:shadow-lg hover:scale-105">
+              <Card key={index} className="text-center transition-all duration-300 hover:shadow-xl hover:scale-105 group animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                 <CardHeader>
-                  <div className="mx-auto h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-primary" />
+                  <div className="mx-auto h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110">
+                    <feature.icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:rotate-12" />
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl font-heading">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-base">
