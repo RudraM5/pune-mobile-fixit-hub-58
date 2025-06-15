@@ -122,12 +122,12 @@ export function useRealtimeBookings() {
           console.log('Repair request change:', payload);
           
           // Check if this request belongs to the current user
-          if (payload.new) {
+          if (payload.new && typeof payload.new === 'object' && 'customer_id' in payload.new) {
             const { data: customer } = await supabase
               .from('customers')
               .select('user_id')
               .eq('id', payload.new.customer_id)
-              .single();
+              .maybeSingle();
 
             if (customer?.user_id === user.id) {
               if (payload.eventType === 'INSERT') {
