@@ -182,11 +182,11 @@ const BookRepairPage = () => {
 
               <TabsContent value="services" className="space-y-6">
                 {selectedDevice && (
-                  <Card>
+                  <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200 shadow-md">
                     <CardHeader>
                       <CardTitle>Selected Device</CardTitle>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-lg px-4 py-2">
+                        <Badge variant="outline" className="text-lg px-4 py-2 bg-white shadow-sm">
                           {selectedDevice.brand} {selectedDevice.model}
                         </Badge>
                         <Button
