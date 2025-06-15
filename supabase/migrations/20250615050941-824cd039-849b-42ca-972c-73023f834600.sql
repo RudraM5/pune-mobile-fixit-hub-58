@@ -6,9 +6,9 @@ INSERT INTO public.customers (name, phone, email, address) VALUES
 
 -- Create some sample technicians (without user_id for demo)
 INSERT INTO public.technicians (name, phone, email, specialization, is_active) VALUES
-('Raj Kumar', '+919876543211', 'raj@fixmyphone.com', ARRAY['Screen Repair', 'Battery Replacement'], true),
-('Priya Sharma', '+919876543212', 'priya@fixmyphone.com', ARRAY['Camera Repair', 'Water Damage'], true),
-('Amit Patel', '+919876543213', 'amit@fixmyphone.com', ARRAY['Software Issues', 'Data Recovery'], true);
+('Raj Kumar', '+919876543211', 'raj@mobilerepairwala.com', ARRAY['Screen Repair', 'Battery Replacement'], true),
+('Priya Sharma', '+919876543212', 'priya@mobilerepairwala.com', ARRAY['Camera Repair', 'Water Damage'], true),
+('Amit Patel', '+919876543213', 'amit@mobilerepairwala.com', ARRAY['Software Issues', 'Data Recovery'], true);
 
 -- Create some sample repair requests
 INSERT INTO public.repair_requests (customer_id, device_id, technician_id, status, priority, description, estimated_completion, total_amount, notes) VALUES
