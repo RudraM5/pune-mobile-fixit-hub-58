@@ -59,10 +59,20 @@ const LoginPage = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !confirmPassword || !displayName) {
+    // Improved validation
+    if (!email?.trim() || !password || !confirmPassword || !displayName?.trim()) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long",
         variant: "destructive"
       });
       return;
@@ -77,27 +87,65 @@ const LoginPage = () => {
       return;
     }
 
-    setIsLoading(true);
-    const { error } = await signUp(email, password, {
-      display_name: displayName,
-      phone: phone,
-      role: 'customer'
-    });
-    
-    if (!error) {
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       toast({
-        title: "Account Created",
-        description: "Please check your email to confirm your account",
-      });
-      setMode('signin');
-    } else {
-      toast({
-        title: "Sign Up Failed",
-        description: error.message || "Failed to create account. Please try again.",
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
         variant: "destructive"
       });
+      return;
     }
-    setIsLoading(false);
+
+    setIsLoading(true);
+    
+    try {
+      const { error } = await signUp(email.trim(), password, {
+        display_name: displayName.trim(),
+        phone: phone?.trim() || null,
+        role: 'customer'
+      });
+      
+      if (!error) {
+        toast({
+          title: "Account Created Successfully!",
+          description: "Please check your email to confirm your account before signing in.",
+        });
+        setMode('signin');
+        // Clear form
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setDisplayName('');
+        setPhone('');
+      } else {
+        // More specific error handling
+        let errorMessage = "Failed to create account. Please try again.";
+        
+        if (error.message?.includes("already registered")) {
+          errorMessage = "An account with this email already exists. Please sign in instead.";
+        } else if (error.message?.includes("email")) {
+          errorMessage = "Please enter a valid email address.";
+        } else if (error.message?.includes("password")) {
+          errorMessage = "Password requirements not met. Please choose a stronger password.";
+        }
+        
+        toast({
+          title: "Sign Up Failed",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Network Error",
+        description: "Please check your connection and try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
