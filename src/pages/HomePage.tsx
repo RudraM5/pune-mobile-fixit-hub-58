@@ -4,6 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/layout/Header";
 import ServiceCard from "@/components/ServiceCard";
+import { ReviewCard } from "@/components/reviews/ReviewCard";
+import { TechnicianCard } from "@/components/reviews/TechnicianCard";
+import { BeforeAfterCard } from "@/components/reviews/BeforeAfterCard";
+import { VideoTestimonialCard } from "@/components/reviews/VideoTestimonialCard";
+import { TrustBadges } from "@/components/reviews/TrustBadges";
+import { SocialProofSection } from "@/components/reviews/SocialProofSection";
+import { reviews, technicians, beforeAfterGallery, videoTestimonials } from "@/data/reviewsData";
 import { Phone, Clock, Shield, Star, CheckCircle, Users, Truck, Wrench } from "lucide-react";
 
 const HomePage = () => {
@@ -210,6 +217,119 @@ const HomePage = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Trust Badges Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading">
+              Why Trust FixMyPhone?
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Certified, trusted, and committed to excellence
+            </p>
+          </div>
+          <TrustBadges />
+        </div>
+      </section>
+
+      {/* Customer Reviews Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading">
+              What Our Customers Say
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Real reviews from satisfied customers across Pune
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {reviews.slice(0, 6).map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
+          </div>
+          <div className="text-center">
+            <Link to="/reviews">
+              <Button variant="outline" size="lg">
+                View All Reviews
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Meet Our Experts Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading">
+              Meet Our Expert Technicians
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Certified professionals with years of experience
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {technicians.map((technician) => (
+              <TechnicianCard key={technician.id} technician={technician} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Before & After Gallery */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading">
+              Repair Gallery
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              See the quality of our work - before and after transformations
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {beforeAfterGallery.map((item) => (
+              <BeforeAfterCard key={item.id} item={item} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Video Testimonials */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading">
+              Customer Stories
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Watch real customers share their experiences
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {videoTestimonials.map((testimonial) => (
+              <VideoTestimonialCard key={testimonial.id} testimonial={testimonial} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof & Live Activity */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-heading">
+              Live from Our Service Centers
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Real-time updates from our active repair operations
+            </p>
+          </div>
+          <SocialProofSection />
         </div>
       </section>
 

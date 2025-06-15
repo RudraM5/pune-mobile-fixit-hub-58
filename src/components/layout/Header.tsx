@@ -18,6 +18,7 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
   const navItems = [
     { href: "/", label: "Home" },
     { href: "/services", label: "Services" },
+    { href: "/reviews", label: "Reviews" },
     { href: "/book-repair", label: "Book Repair" },
     { href: "/dashboard", label: "My Repairs" },
     { href: "/contact", label: "Contact" },
