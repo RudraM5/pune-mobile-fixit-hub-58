@@ -6,9 +6,11 @@ import { services, serviceCategories } from "@/data/services";
 
 interface ServicesSelectorProps {
   onAddToCart: (service: Service) => void;
+  onProceedToDetails: () => void;
+  hasItemsInCart: boolean;
 }
 
-const ServicesSelector = ({ onAddToCart }: ServicesSelectorProps) => {
+const ServicesSelector = ({ onAddToCart, onProceedToDetails, hasItemsInCart }: ServicesSelectorProps) => {
   return (
     <div className="space-y-6">
       {serviceCategories.map(category => (
@@ -46,6 +48,19 @@ const ServicesSelector = ({ onAddToCart }: ServicesSelectorProps) => {
           </CardContent>
         </Card>
       ))}
+      
+      {hasItemsInCart && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground mb-4">
+              Ready to proceed? Add your contact details to complete the booking.
+            </p>
+            <Button onClick={onProceedToDetails} size="lg" className="w-full md:w-auto">
+              Proceed to Contact Details
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

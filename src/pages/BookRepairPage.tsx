@@ -258,7 +258,11 @@ const BookRepairPage = () => {
                     onChangeDevice={() => setActiveTab("device")} 
                   />
                 )}
-                <ServicesSelector onAddToCart={addToCart} />
+                <ServicesSelector 
+                  onAddToCart={addToCart} 
+                  onProceedToDetails={() => setActiveTab("details")}
+                  hasItemsInCart={cart.length > 0}
+                />
               </TabsContent>
 
               <TabsContent value="details" className="space-y-6">
