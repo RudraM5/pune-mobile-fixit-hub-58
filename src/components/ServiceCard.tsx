@@ -23,29 +23,29 @@ const ServiceCard = ({
   onSelect 
 }: ServiceCardProps) => {
   return (
-    <Card className={`relative vibrant-card service-card-hover ${popular ? 'ring-2 ring-neon-pink shadow-lg shadow-neon-pink/25' : ''}`}>
+    <Card className={`relative transition-all duration-200 hover:shadow-lg hover:scale-105 ${popular ? 'ring-2 ring-primary' : ''}`}>
       {popular && (
-        <Badge className="absolute -top-2 left-4 glow-button text-white shadow-lg" style={{ background: 'linear-gradient(45deg, #ff006e, #8338ec)' }}>
+        <Badge className="absolute -top-2 left-4 bg-primary">
           Most Popular
         </Badge>
       )}
       <CardHeader>
-        <CardTitle className="text-lg neon-text">{title}</CardTitle>
-        <CardDescription className="text-sm text-foreground">{description}</CardDescription>
+        <CardTitle className="text-lg">{title}</CardTitle>
+        <CardDescription className="text-sm">{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold neon-text">₹{price}</div>
-          <div className="flex items-center text-sm text-foreground">
-            <Clock className="h-4 w-4 mr-1 text-electric-blue" />
+          <div className="text-2xl font-bold text-primary">₹{price}</div>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 mr-1" />
             {duration}
           </div>
         </div>
         <div className="flex items-center">
-          <Star className="h-4 w-4 text-golden fill-current" />
-          <span className="ml-1 text-sm text-foreground">{rating}/5</span>
+          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+          <span className="ml-1 text-sm text-muted-foreground">{rating}/5</span>
         </div>
-        <Button className="w-full glow-button text-white shadow-lg" style={{ background: 'linear-gradient(45deg, #8338ec, #3a86ff)' }} onClick={onSelect}>
+        <Button className="w-full" onClick={onSelect}>
           Select Service
         </Button>
       </CardContent>
