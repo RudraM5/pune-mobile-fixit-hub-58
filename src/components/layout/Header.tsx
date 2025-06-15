@@ -13,7 +13,7 @@ interface HeaderProps {
 
 const Header = ({ cartItems = 0 }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, profile, isAuthenticated, isAdmin, signOut } = useAuth();
 
   const navItems = [
     { href: "/", label: "Home" },
@@ -80,9 +80,9 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
                 )}
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground">
-                    Hi, {user?.name || 'User'}
+                    Hi, {profile?.display_name || user?.email?.split('@')[0] || 'User'}
                   </span>
-                  <Button variant="outline" size="sm" onClick={logout} className="transition-all duration-300 hover:scale-105 hover:shadow-md">
+                  <Button variant="outline" size="sm" onClick={signOut} className="transition-all duration-300 hover:scale-105 hover:shadow-md">
                     <LogOut className="h-4 w-4 mr-2 transition-transform duration-300 hover:rotate-12" />
                     Logout
                   </Button>
@@ -140,15 +140,15 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
                           </Button>
                         </Link>
                       )}
-                      <div className="space-y-2">
+                       <div className="space-y-2">
                         <div className="text-sm text-muted-foreground px-2">
-                          Logged in as {user?.name || 'User'}
+                          Logged in as {profile?.display_name || user?.email?.split('@')[0] || 'User'}
                         </div>
                         <Button 
                           variant="outline" 
                           className="w-full justify-start"
                           onClick={() => {
-                            logout();
+                            signOut();
                             setIsOpen(false);
                           }}
                         >

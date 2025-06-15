@@ -1,20 +1,32 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
-interface User {
+interface Profile {
   id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  role: 'customer' | 'admin';
+  user_id: string;
+  display_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  role: 'customer' | 'admin' | 'technician';
+}
+
+interface AuthUser extends User {
+  profile?: Profile;
 }
 
 interface AuthContextType {
-  user: User | null;
-  login: (phone: string, otp: string) => Promise<boolean>;
-  logout: () => void;
+  user: AuthUser | null;
+  session: Session | null;
+  profile: Profile | null;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signOut: () => Promise<void>;
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isTechnician: boolean;
+  updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,71 +40,124 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        localStorage.removeItem('user');
-      }
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return null;
     }
-    setIsLoading(false);
-  }, []);
-
-  const login = async (phone: string, otp: string): Promise<boolean> => {
-    setIsLoading(true);
     
-    // Simulate OTP verification
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock user data - in real app, this would come from your backend
-    let mockUser: User;
-    
-    if (phone === '9876543210' && otp === '1234') {
-      // Admin user
-      mockUser = {
-        id: 'admin-1',
-        name: 'Admin User',
-        phone: '9876543210',
-        email: 'admin@fixmyphone.com',
-        role: 'admin'
-      };
-    } else if (otp === '1234') {
-      // Regular customer
-      mockUser = {
-        id: `user-${Date.now()}`,
-        name: 'Customer',
-        phone: phone,
-        role: 'customer'
-      };
-    } else {
-      setIsLoading(false);
-      return false;
-    }
-
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setIsLoading(false);
-    return true;
+    return data;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          // Fetch user profile
+          setTimeout(async () => {
+            const profileData = await fetchProfile(session.user.id);
+            setProfile(profileData);
+            setUser(prev => prev ? { ...prev, profile: profileData } : null);
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchProfile(session.user.id).then(profileData => {
+          setProfile(profileData);
+          setUser(prev => prev ? { ...prev, profile: profileData } : null);
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signUp = async (email: string, password: string, metadata = {}) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: metadata
+      }
+    });
+    
+    return { error };
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    return { error };
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const updateProfile = async (updates: Partial<Profile>) => {
+    if (!user) return { error: new Error('No user logged in') };
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('user_id', user.id);
+
+    if (!error) {
+      const updatedProfile = { ...profile, ...updates } as Profile;
+      setProfile(updatedProfile);
+      setUser(prev => prev ? { ...prev, profile: updatedProfile } : null);
+    }
+
+    return { error };
   };
 
   const value: AuthContextType = {
     user,
-    login,
-    logout,
+    session,
+    profile,
+    signUp,
+    signIn,
+    signOut,
     isLoading,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin'
+    isAdmin: profile?.role === 'admin',
+    isTechnician: profile?.role === 'technician',
+    updateProfile
   };
 
   return (
