@@ -186,7 +186,7 @@ const BookRepairPage = () => {
                     <CardHeader>
                       <CardTitle>Selected Device</CardTitle>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="text-lg px-4 py-2">
                           {selectedDevice.brand} {selectedDevice.model}
                         </Badge>
                         <Button
