@@ -1,153 +1,67 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Header from "@/components/layout/Header";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Clock, 
-  CheckCircle, 
-  Phone, 
-  MapPin, 
-  Calendar,
-  Wrench,
-  Package,
-  Star,
-  MessageCircle
-} from "lucide-react";
-
-interface RepairStatus {
-  id: string;
-  deviceName: string;
-  services: string[];
-  status: "pending" | "in-progress" | "completed" | "delivered";
-  progress: number;
-  createdAt: string;
-  estimatedCompletion: string;
-  technician: string;
-  totalAmount: number;
-  trackingUpdates: {
-    status: string;
-    message: string;
-    timestamp: string;
-  }[];
-}
+  Search, 
+  Filter, 
+  Wrench, 
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  Plus,
+  Bell
+} from 'lucide-react';
+import Header from '@/components/layout/Header';
+import { useCustomerData, CustomerRepairRequest } from '@/hooks/useCustomerData';
+import { StatsCards } from '@/components/customer/StatsCards';
+import { RepairCard } from '@/components/customer/RepairCard';
+import { RepairDetailsModal } from '@/components/customer/RepairDetailsModal';
+import { RealtimeNotifications } from '@/components/realtime/RealtimeNotifications';
+import { Link } from 'react-router-dom';
 
 const UserDashboard = () => {
-  const { user, isAuthenticated } = useAuth();
-  const [userRepairs, setUserRepairs] = useState<RepairStatus[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { repairs, stats, loading, error, refetch } = useCustomerData();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedRepair, setSelectedRepair] = useState<CustomerRepairRequest | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      fetchUserRepairs();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated, user]);
-
-  const fetchUserRepairs = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('repair_requests')
-        .select(`
-          id,
-          status,
-          priority,
-          created_at,
-          estimated_completion,
-          total_amount,
-          description,
-          customers!inner(name, phone, user_id),
-          devices!inner(brand, model),
-          technicians(name),
-          repair_request_services!inner(
-            services!inner(name)
-          ),
-          status_updates(
-            old_status,
-            new_status,
-            message,
-            created_at
-          )
-        `)
-        .eq('customers.user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedRepairs = data?.map(request => {
-        const progress = getProgressFromStatus(request.status);
-        return {
-          id: request.id.substring(0, 8),
-          deviceName: `${request.devices.brand} ${request.devices.model}`,
-          services: request.repair_request_services.map((rrs: any) => rrs.services.name),
-          status: request.status as "pending" | "in-progress" | "completed" | "delivered",
-          progress,
-          createdAt: request.created_at,
-          estimatedCompletion: request.estimated_completion,
-          technician: request.technicians?.name || 'To be assigned',
-          totalAmount: request.total_amount,
-          trackingUpdates: request.status_updates.map((update: any) => ({
-            status: update.new_status,
-            message: update.message,
-            timestamp: update.created_at
-          })).sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-        };
-      }) || [];
-
-      setUserRepairs(formattedRepairs);
-    } catch (error) {
-      console.error('Error fetching user repairs:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleViewDetails = (repair: CustomerRepairRequest) => {
+    setSelectedRepair(repair);
+    setIsDetailsModalOpen(true);
   };
 
-  const getProgressFromStatus = (status: string) => {
-    const statusMap = {
-      "pending": 20,
-      "in-progress": 60,
-      "completed": 100,
-      "delivered": 100
-    };
-    return statusMap[status as keyof typeof statusMap] || 0;
-  };
+  const filteredRepairs = repairs.filter(repair => {
+    const matchesSearch = repair.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         repair.device.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         repair.device.model.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || repair.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
-  if (loading) {
+  const activeRepairs = filteredRepairs.filter(r => !['completed', 'cancelled'].includes(r.status));
+  const completedRepairs = filteredRepairs.filter(r => r.status === 'completed');
+  const pendingRepairs = filteredRepairs.filter(r => r.status === 'pending');
+
+  if (error) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center p-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p>Loading your repairs...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <Card>
-            <CardContent className="text-center py-12">
-              <h3 className="text-lg font-semibold mb-2">Please Login</h3>
-              <p className="text-muted-foreground mb-4">
-                You need to be logged in to view your repair requests.
-              </p>
-              <Button>
-                Login to View Repairs
+          <Card className="max-w-md mx-auto">
+            <CardContent className="pt-6 text-center">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Unable to Load Dashboard</h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={refetch}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
               </Button>
             </CardContent>
           </Card>
@@ -156,287 +70,247 @@ const UserDashboard = () => {
     );
   }
 
-  const getStatusInfo = (status: string) => {
-    const statusMap = {
-      "pending": { label: "Pending", color: "bg-blue-500", icon: Package },
-      "in-progress": { label: "In Progress", color: "bg-orange-500", icon: Wrench },
-      "completed": { label: "Completed", color: "bg-green-500", icon: CheckCircle },
-      "delivered": { label: "Delivered", color: "bg-gray-500", icon: CheckCircle }
-    };
-    
-    return statusMap[status as keyof typeof statusMap] || statusMap.pending;
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      "pending": "secondary",
-      "in-progress": "default", 
-      "completed": "default",
-      "delivered": "secondary"
-    } as const;
-    
-    const statusInfo = getStatusInfo(status);
-    return <Badge variant={variants[status as keyof typeof variants] || "default"}>{statusInfo.label}</Badge>;
-  };
-
-  const activeRepairs = userRepairs.filter(repair => 
-    !["completed", "delivered"].includes(repair.status)
-  );
-  
-  const completedRepairs = userRepairs.filter(repair => 
-    ["completed", "delivered"].includes(repair.status)
-  );
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <RealtimeNotifications />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Repairs</h1>
-          <p className="text-muted-foreground">
-            Track your device repairs and view repair history
-          </p>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">My Repair Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              Track your device repairs and service history
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={refetch} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Link to="/book-repair">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Repair
+              </Button>
+            </Link>
+          </div>
         </div>
 
+        {/* Stats Cards */}
+        <StatsCards stats={stats} loading={loading} />
+
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 my-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search repairs by device, issue, or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant={statusFilter === 'all' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('all')}
+              size="sm"
+            >
+              All
+            </Button>
+            <Button
+              variant={statusFilter === 'pending' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('pending')}
+              size="sm"
+            >
+              Pending
+            </Button>
+            <Button
+              variant={statusFilter === 'in-progress' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('in-progress')}
+              size="sm"
+            >
+              In Progress
+            </Button>
+            <Button
+              variant={statusFilter === 'completed' ? 'default' : 'outline'}
+              onClick={() => setStatusFilter('completed')}
+              size="sm"
+            >
+              Completed
+            </Button>
+          </div>
+        </div>
+
+        {/* Repair History Tabs */}
         <Tabs defaultValue="active" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="active">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="active" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
               Active Repairs ({activeRepairs.length})
             </TabsTrigger>
-            <TabsTrigger value="history">
-              Repair History ({completedRepairs.length})
+            <TabsTrigger value="completed" className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Completed ({completedRepairs.length})
+            </TabsTrigger>
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              <Wrench className="h-4 w-4" />
+              All Repairs ({filteredRepairs.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-6">
-            {activeRepairs.length === 0 ? (
+          <TabsContent value="active" className="space-y-4">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-muted rounded"></div>
+                        <div className="h-3 bg-muted rounded w-2/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : activeRepairs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {activeRepairs.map((repair) => (
+                  <RepairCard 
+                    key={repair.id} 
+                    repair={repair} 
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
+            ) : (
               <Card>
-                <CardContent className="text-center py-12">
-                  <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <CardContent className="pt-6 text-center">
+                  <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No Active Repairs</h3>
                   <p className="text-muted-foreground mb-4">
-                    You don't have any devices currently being repaired.
+                    You don't have any repairs in progress at the moment.
                   </p>
-                  <Button>
-                    Book a Repair
-                  </Button>
+                  <Link to="/book-repair">
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Book a New Repair
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
-            ) : (
-              activeRepairs.map(repair => (
-                <Card key={repair.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-xl">{repair.deviceName}</CardTitle>
-                        <CardDescription>Request ID: #{repair.id}</CardDescription>
-                      </div>
-                      <div className="text-right">
-                        {getStatusBadge(repair.status)}
-                        <p className="text-sm text-muted-foreground mt-1">
-                          ₹{repair.totalAmount.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Progress Bar */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Repair Progress</span>
-                        <span>{repair.progress}%</span>
-                      </div>
-                      <Progress value={repair.progress} className="h-2" />
-                    </div>
-
-                    {/* Service Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-semibold mb-2">Services</h4>
-                        <ul className="space-y-1">
-                          {repair.services.map((service, index) => (
-                            <li key={index} className="text-sm text-muted-foreground flex items-center">
-                              <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                              {service}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-2">Details</h4>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <div className="flex items-center">
-                            <Calendar className="h-3 w-3 mr-2" />
-                            Started: {new Date(repair.createdAt).toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center">
-                            <Clock className="h-3 w-3 mr-2" />
-                            Est. Completion: {new Date(repair.estimatedCompletion).toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center">
-                            <Wrench className="h-3 w-3 mr-2" />
-                            Technician: {repair.technician}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Status Timeline */}
-                    <div>
-                      <h4 className="font-semibold mb-4">Repair Timeline</h4>
-                      <div className="space-y-4">
-                        {repair.trackingUpdates.map((update, index) => {
-                          const statusInfo = getStatusInfo(update.status);
-                          const Icon = statusInfo.icon;
-                          return (
-                            <div key={index} className="flex items-start space-x-3">
-                              <div className={`p-2 rounded-full ${statusInfo.color} text-white`}>
-                                <Icon className="h-3 w-3" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium">{statusInfo.label}</p>
-                                <p className="text-sm text-muted-foreground">{update.message}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(update.timestamp).toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button variant="outline" className="flex-1">
-                        <Phone className="h-4 w-4 mr-2" />
-                        Call Support
-                      </Button>
-                      <Button variant="outline" className="flex-1">
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        WhatsApp Updates
-                      </Button>
-                      {repair.status === "completed" && (
-                        <Button className="flex-1">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          Schedule Pickup
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
             )}
           </TabsContent>
 
-          <TabsContent value="history" className="space-y-6">
-            {completedRepairs.length === 0 ? (
+          <TabsContent value="completed" className="space-y-4">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-muted rounded"></div>
+                        <div className="h-3 bg-muted rounded w-2/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : completedRepairs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {completedRepairs.map((repair) => (
+                  <RepairCard 
+                    key={repair.id} 
+                    repair={repair} 
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
+            ) : (
               <Card>
-                <CardContent className="text-center py-12">
-                  <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Repair History</h3>
+                <CardContent className="pt-6 text-center">
+                  <CheckCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Completed Repairs</h3>
                   <p className="text-muted-foreground">
                     Your completed repairs will appear here.
                   </p>
                 </CardContent>
               </Card>
-            ) : (
-              completedRepairs.map(repair => (
-                <Card key={repair.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-xl">{repair.deviceName}</CardTitle>
-                        <CardDescription>Request ID: #{repair.id}</CardDescription>
-                      </div>
-                      <div className="text-right">
-                        {getStatusBadge(repair.status)}
-                        <p className="text-sm text-muted-foreground mt-1">
-                          ₹{repair.totalAmount.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Service Summary */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-semibold mb-2">Services Completed</h4>
-                        <ul className="space-y-1">
-                          {repair.services.map((service, index) => (
-                            <li key={index} className="text-sm text-muted-foreground flex items-center">
-                              <CheckCircle className="h-3 w-3 mr-2 text-green-500" />
-                              {service}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-2">Repair Details</h4>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <div className="flex items-center">
-                            <Calendar className="h-3 w-3 mr-2" />
-                            Completed: {new Date(repair.estimatedCompletion).toLocaleDateString()}
-                          </div>
-                          <div className="flex items-center">
-                            <Wrench className="h-3 w-3 mr-2" />
-                            Technician: {repair.technician}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+            )}
+          </TabsContent>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button variant="outline" className="flex-1">
-                        <Star className="h-4 w-4 mr-2" />
-                        Rate Service
+          <TabsContent value="all" className="space-y-4">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-muted rounded"></div>
+                        <div className="h-3 bg-muted rounded w-2/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredRepairs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredRepairs.map((repair) => (
+                  <RepairCard 
+                    key={repair.id} 
+                    repair={repair} 
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">
+                    {searchTerm || statusFilter !== 'all' ? 'No Matching Repairs' : 'No Repairs Yet'}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    {searchTerm || statusFilter !== 'all' 
+                      ? 'Try adjusting your search or filters.' 
+                      : 'Start by booking your first device repair.'
+                    }
+                  </p>
+                  {!searchTerm && statusFilter === 'all' && (
+                    <Link to="/book-repair">
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Book Your First Repair
                       </Button>
-                      <Button variant="outline" className="flex-1">
-                        Download Invoice
-                      </Button>
-                      <Button variant="outline" className="flex-1">
-                        <Phone className="h-4 w-4 mr-2" />
-                        Support
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                    </Link>
+                  )}
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
         </Tabs>
-
-        {/* Quick Actions */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Need Help?</CardTitle>
-            <CardDescription>
-              Contact our support team for any questions about your repairs
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button variant="outline" className="h-20 flex-col">
-                <Phone className="h-6 w-6 mb-2" />
-                <span>Call Support</span>
-                <span className="text-xs text-muted-foreground">+91 98765 43210</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col">
-                <MessageCircle className="h-6 w-6 mb-2" />
-                <span>WhatsApp</span>
-                <span className="text-xs text-muted-foreground">Quick responses</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col">
-                <MapPin className="h-6 w-6 mb-2" />
-                <span>Visit Store</span>
-                <span className="text-xs text-muted-foreground">30+ locations</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Repair Details Modal */}
+      <RepairDetailsModal
+        repair={selectedRepair}
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+      />
     </div>
   );
 };
