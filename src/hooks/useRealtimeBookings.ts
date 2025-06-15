@@ -123,32 +123,36 @@ export function useRealtimeBookings() {
           
           // Check if this request belongs to the current user
           if (payload.new && typeof payload.new === 'object' && 'customer_id' in payload.new) {
+            const newRecord = payload.new as { customer_id: string; id: string; status: string };
             const { data: customer } = await supabase
               .from('customers')
               .select('user_id')
-              .eq('id', payload.new.customer_id)
+              .eq('id', newRecord.customer_id)
               .maybeSingle();
 
             if (customer?.user_id === user.id) {
               if (payload.eventType === 'INSERT') {
-                setRepairRequests(prev => [payload.new as RepairRequest, ...prev]);
+                setRepairRequests(prev => [newRecord as RepairRequest, ...prev]);
                 toast({
                   title: "New Repair Request",
-                  description: `Request #${payload.new.id.substring(0, 8)} has been created`,
+                  description: `Request #${newRecord.id.substring(0, 8)} has been created`,
                 });
               } else if (payload.eventType === 'UPDATE') {
                 setRepairRequests(prev => 
                   prev.map(req => 
-                    req.id === payload.new.id ? { ...req, ...payload.new } : req
+                    req.id === newRecord.id ? { ...req, ...newRecord } : req
                   )
                 );
                 
                 // Show toast for status changes
-                if (payload.old?.status !== payload.new.status) {
-                  toast({
-                    title: "Status Updated",
-                    description: `Request #${payload.new.id.substring(0, 8)} is now ${payload.new.status}`,
-                  });
+                if (payload.old && typeof payload.old === 'object' && 'status' in payload.old) {
+                  const oldRecord = payload.old as { status: string };
+                  if (oldRecord.status !== newRecord.status) {
+                    toast({
+                      title: "Status Updated",
+                      description: `Request #${newRecord.id.substring(0, 8)} is now ${newRecord.status}`,
+                    });
+                  }
                 }
               }
             }
@@ -171,15 +175,18 @@ export function useRealtimeBookings() {
           console.log('Status update change:', payload);
           
           // Check if this update is for user's repair request
-          const requestExists = repairRequests.some(req => req.id === payload.new.repair_request_id);
+          if (payload.new && typeof payload.new === 'object' && 'repair_request_id' in payload.new) {
+            const newUpdate = payload.new as { repair_request_id: string; message: string; new_status: string };
+            const requestExists = repairRequests.some(req => req.id === newUpdate.repair_request_id);
           
-          if (requestExists) {
-            setStatusUpdates(prev => [payload.new as StatusUpdate, ...prev.slice(0, 19)]);
-            
-            toast({
-              title: "Progress Update",
-              description: payload.new.message || `Status changed to ${payload.new.new_status}`,
-            });
+            if (requestExists) {
+              setStatusUpdates(prev => [newUpdate as StatusUpdate, ...prev.slice(0, 19)]);
+              
+              toast({
+                title: "Progress Update",
+                description: newUpdate.message || `Status changed to ${newUpdate.new_status}`,
+              });
+            }
           }
         }
       )
@@ -198,32 +205,36 @@ export function useRealtimeBookings() {
         (payload) => {
           console.log('Notification change:', payload);
           
-          if (payload.new.user_id === user.id) {
-            setNotifications(prev => [payload.new as RealtimeNotification, ...prev.slice(0, 9)]);
+          if (payload.new && typeof payload.new === 'object' && 'user_id' in payload.new) {
+            const newNotification = payload.new as RealtimeNotification;
             
-            // Show real-time notification
-            toast({
-              title: payload.new.title,
-              description: payload.new.message,
-              duration: 5000,
-            });
+            if (newNotification.user_id === user.id) {
+              setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
+              
+              // Show real-time notification
+              toast({
+                title: newNotification.title,
+                description: newNotification.message,
+                duration: 5000,
+              });
 
-            // Mark notification as seen after a delay
-            setTimeout(() => {
-              supabase
-                .from('notifications')
-                .update({ status: 'read' })
-                .eq('id', payload.new.id)
-                .then(() => {
-                  setNotifications(prev => 
-                    prev.map(notif => 
-                      notif.id === payload.new.id 
-                        ? { ...notif, status: 'read' } 
-                        : notif
-                    )
-                  );
-                });
-            }, 3000);
+              // Mark notification as seen after a delay
+              setTimeout(() => {
+                supabase
+                  .from('notifications')
+                  .update({ status: 'read' })
+                  .eq('id', newNotification.id)
+                  .then(() => {
+                    setNotifications(prev => 
+                      prev.map(notif => 
+                        notif.id === newNotification.id 
+                          ? { ...notif, status: 'read' } 
+                          : notif
+                      )
+                    );
+                  });
+              }, 3000);
+            }
           }
         }
       )
