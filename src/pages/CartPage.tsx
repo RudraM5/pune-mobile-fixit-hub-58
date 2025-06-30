@@ -22,36 +22,8 @@ interface CartItem {
 const CartPage = () => {
   const { toast } = useToast();
   
-  // Mock cart data - in real app this would come from state management
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: "1",
-      name: "Screen Replacement",
-      description: "High-quality OLED display replacement",
-      price: 1500,
-      duration: "30 mins",
-      quantity: 1,
-      category: "Basic Repair"
-    },
-    {
-      id: "2",
-      name: "Battery Replacement",
-      description: "Original capacity battery replacement",
-      price: 1200,
-      duration: "20 mins",
-      quantity: 1,
-      category: "Basic Repair"
-    },
-    {
-      id: "3",
-      name: "Tempered Glass",
-      description: "9H hardness screen protector",
-      price: 200,
-      duration: "5 mins",
-      quantity: 2,
-      category: "Accessory"
-    }
-  ]);
+  // Empty cart by default - items should only appear when added
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const updateQuantity = (id: string, change: number) => {
     setCartItems(items => 

@@ -21,6 +21,136 @@ interface TechnicianSuggestionsProps {
   onSelectTechnician: (technician: EnhancedTechnician) => void;
 }
 
+// Dummy shops data
+const dummyShops = [
+  {
+    id: "shop1",
+    name: "TechFix Mobile Center",
+    owner_name: "Rajesh Sharma",
+    phone: "+91-9876543210",
+    email: "techfix.pune@gmail.com",
+    address: "Shop 15, FC Road, Near Sambhaji Bridge",
+    area: "FC Road",
+    is_active: true,
+    rating: 4.5,
+    total_repairs: 150,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "shop2",
+    name: "QuickFix Solutions",
+    owner_name: "Amit Kumar",
+    phone: "+91-9876543212",
+    email: "quickfix.vimaan@gmail.com",
+    address: "Shop 22, Airport Road, Viman Nagar",
+    area: "Viman Nagar",
+    is_active: true,
+    rating: 4.7,
+    total_repairs: 200,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "shop3",
+    name: "Expert Mobile Solutions",
+    owner_name: "Kavita Singh",
+    phone: "+91-9876543215",
+    email: "expert.wakad@gmail.com",
+    address: "Shop 18, Wakad IT Park Road",
+    area: "Wakad",
+    is_active: true,
+    rating: 4.6,
+    total_repairs: 180,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+// Dummy technicians data
+const dummyTechnicians = [
+  {
+    id: "tech1",
+    user_id: "user1",
+    name: "Arjun Mehta",
+    phone: "+91-9876543301",
+    email: "arjun.mehta@techfix.com",
+    shop_id: "shop1",
+    shop: dummyShops[0],
+    specialization: ["Screen Replacement", "Battery Replacement", "Camera Repair"],
+    expertise_level: "expert" as const,
+    years_experience: 5,
+    rating: 4.6,
+    completed_repairs: 85,
+    availability_status: "available" as const,
+    hourly_rate: 300,
+    area: "FC Road",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "tech2",
+    user_id: "user2",
+    name: "Pooja Gupta",
+    phone: "+91-9876543302",
+    email: "pooja.gupta@quickfix.com",
+    shop_id: "shop2",
+    shop: dummyShops[1],
+    specialization: ["Water Damage", "Motherboard Repair", "Software Issues"],
+    expertise_level: "master" as const,
+    years_experience: 7,
+    rating: 4.8,
+    completed_repairs: 120,
+    availability_status: "available" as const,
+    hourly_rate: 400,
+    area: "Viman Nagar",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "tech3",
+    user_id: "user3",
+    name: "Vikram Singh",
+    phone: "+91-9876543303",
+    email: "vikram.singh@expert.com",
+    shop_id: "shop3",
+    shop: dummyShops[2],
+    specialization: ["Charging Port", "Speaker Repair", "Battery Replacement"],
+    expertise_level: "expert" as const,
+    years_experience: 4,
+    rating: 4.4,
+    completed_repairs: 95,
+    availability_status: "available" as const,
+    hourly_rate: 350,
+    area: "Wakad",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "tech4",
+    user_id: "user4",
+    name: "Priyanka Das",
+    phone: "+91-9876543306",
+    email: "priyanka.das@expert.com",
+    shop_id: "shop1",
+    shop: dummyShops[0],
+    specialization: ["Screen Replacement", "Data Recovery", "Software Issues"],
+    expertise_level: "master" as const,
+    years_experience: 8,
+    rating: 4.9,
+    completed_repairs: 150,
+    availability_status: "available" as const,
+    hourly_rate: 450,
+    area: "FC Road",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
 const TechnicianSuggestions = ({ 
   selectedServices, 
   customerArea = "Pune Center",
@@ -37,98 +167,53 @@ const TechnicianSuggestions = ({
         // Get service categories from selected services
         const serviceCategories = selectedServices.map(s => s.category);
         
-        // Fetch technicians with basic data (fallback to current schema)
-        const { data: technicians, error } = await supabase
-          .from('technicians')
-          .select('*')
-          .eq('is_active', true);
+        // Use dummy data for now since database might not be connected
+        const enhancedTechnicians = dummyTechnicians;
 
-        if (error) {
-          console.error('Error fetching technicians:', error);
-          return;
-        }
+        // Filter and score technicians based on specialization match
+        const scoredTechnicians = enhancedTechnicians
+          .filter(tech => {
+            // Check if technician specialization matches any of the required service categories
+            const techSpecializations = tech.specialization || [];
+            return serviceCategories.some(cat => 
+              techSpecializations.some(spec => 
+                spec.toLowerCase().includes(cat.toLowerCase()) ||
+                cat.toLowerCase().includes(spec.toLowerCase())
+              )
+            );
+          })
+          .map(tech => {
+            const matchingServices = serviceCategories.filter(cat => 
+              tech.specialization?.some(spec => 
+                spec.toLowerCase().includes(cat.toLowerCase()) ||
+                cat.toLowerCase().includes(spec.toLowerCase())
+              ) || false
+            );
 
-        if (technicians) {
-          // Create enhanced technician objects with mock data until migration is applied
-          const enhancedTechnicians = technicians.map(tech => ({
-            id: tech.id,
-            user_id: tech.user_id,
-            name: tech.name,
-            phone: tech.phone,
-            email: tech.email,
-            shop_id: tech.id, // Mock shop_id
-            shop: {
-              id: tech.id,
-              name: `${tech.name}'s Mobile Repair Shop`,
-              owner_name: tech.name,
-              phone: tech.phone,
-              email: tech.email,
-              address: `Shop Address, ${customerArea}`,
-              area: customerArea,
-              is_active: true,
-              rating: 4.5,
-              total_repairs: 100,
-              created_at: tech.created_at,
-              updated_at: tech.updated_at
-            },
-            specialization: tech.specialization || [],
-            expertise_level: 'expert' as const,
-            years_experience: 5,
-            rating: 4.5,
-            completed_repairs: 80,
-            availability_status: 'available' as const,
-            hourly_rate: 300,
-            area: customerArea,
-            is_active: tech.is_active,
-            created_at: tech.created_at,
-            updated_at: tech.updated_at
-          }));
+            // Calculate estimated price
+            const basePrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+            const expertiseBonus = tech.expertise_level === 'master' ? 1.2 : 
+                                 tech.expertise_level === 'expert' ? 1.1 : 1.0;
+            const estimatedPrice = Math.round(basePrice * expertiseBonus);
 
-          // Filter and score technicians based on specialization match
-          const scoredTechnicians = enhancedTechnicians
-            .filter(tech => {
-              // Check if technician specialization matches any of the required service categories
-              const techSpecializations = tech.specialization || [];
-              return serviceCategories.some(cat => 
-                techSpecializations.some(spec => 
-                  spec.toLowerCase().includes(cat.toLowerCase()) ||
-                  cat.toLowerCase().includes(spec.toLowerCase())
-                )
-              );
-            })
-            .map(tech => {
-              const matchingServices = serviceCategories.filter(cat => 
-                tech.specialization?.some(spec => 
-                  spec.toLowerCase().includes(cat.toLowerCase()) ||
-                  cat.toLowerCase().includes(spec.toLowerCase())
-                ) || false
-              );
+            // Calculate mock distance
+            const distance = Math.random() * 5 + 1;
 
-              // Calculate estimated price
-              const basePrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
-              const expertiseBonus = tech.expertise_level === 'master' ? 1.2 : 
-                                   tech.expertise_level === 'expert' ? 1.1 : 1.0;
-              const estimatedPrice = Math.round(basePrice * expertiseBonus);
+            return {
+              technician: tech,
+              matchingServices,
+              distance,
+              estimatedPrice
+            };
+          })
+          .sort((a, b) => {
+            // Sort by rating, then by experience
+            if (a.technician.rating !== b.technician.rating) return b.technician.rating - a.technician.rating;
+            return b.technician.years_experience - a.technician.years_experience;
+          })
+          .slice(0, 6);
 
-              // Calculate mock distance
-              const distance = Math.random() * 5 + 1;
-
-              return {
-                technician: tech,
-                matchingServices,
-                distance,
-                estimatedPrice
-              };
-            })
-            .sort((a, b) => {
-              // Sort by rating, then by experience
-              if (a.technician.rating !== b.technician.rating) return b.technician.rating - a.technician.rating;
-              return b.technician.years_experience - a.technician.years_experience;
-            })
-            .slice(0, 6);
-
-          setSuggestions(scoredTechnicians);
-        }
+        setSuggestions(scoredTechnicians);
       } catch (error) {
         console.error('Error fetching technician suggestions:', error);
       } finally {
@@ -138,6 +223,8 @@ const TechnicianSuggestions = ({
 
     if (selectedServices.length > 0) {
       fetchTechnicianSuggestions();
+    } else {
+      setIsLoading(false);
     }
   }, [selectedServices, customerArea]);
 

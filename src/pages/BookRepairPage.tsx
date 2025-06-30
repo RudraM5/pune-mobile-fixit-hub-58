@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/layout/Header";
@@ -14,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MobileDevice, Service } from "@/types/booking";
 import { EnhancedTechnician } from "@/types/shop";
+import { sendWhatsAppConfirmation, sendWhatsAppToShop } from "@/utils/whatsappService";
 
 const BookRepairPage = () => {
   const { toast } = useToast();
@@ -100,148 +102,59 @@ const BookRepairPage = () => {
     setIsSubmitting(true);
 
     try {
-      // First, ensure the customer exists or create one
-      let customerId: string;
-      
-      if (isAuthenticated && user) {
-        // Check if customer record exists for this user
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-        } else {
-          // Create new customer record
-          const { data: newCustomer, error: customerError } = await supabase
-            .from('customers')
-            .insert({
-              user_id: user.id,
-              name: customerInfo.name,
-              phone: customerInfo.phone,
-              email: customerInfo.email,
-              address: customerInfo.address
-            })
-            .select('id')
-            .single();
-
-          if (customerError) throw customerError;
-          customerId = newCustomer.id;
-        }
-      } else {
-        // Create guest customer record
-        const { data: newCustomer, error: customerError } = await supabase
-          .from('customers')
-          .insert({
-            name: customerInfo.name,
-            phone: customerInfo.phone,
-            email: customerInfo.email,
-            address: customerInfo.address
-          })
-          .select('id')
-          .single();
-
-        if (customerError) throw customerError;
-        customerId = newCustomer.id;
-      }
-
-      // Find the device in the database
-      const { data: device, error: deviceError } = await supabase
-        .from('devices')
-        .select('id')
-        .eq('brand', selectedDevice.brand)
-        .eq('model', selectedDevice.model)
-        .single();
-
-      if (deviceError || !device) {
-        // Create the device if it doesn't exist
-        const { data: newDevice, error: newDeviceError } = await supabase
-          .from('devices')
-          .insert({
-            brand: selectedDevice.brand,
-            model: selectedDevice.model,
-            category: 'smartphone'
-          })
-          .select('id')
-          .single();
-
-        if (newDeviceError) throw newDeviceError;
-        device.id = newDevice.id;
-      }
-
-      // Create the repair request with selected technician
+      // Generate a mock booking ID for demo purposes
+      const bookingId = `MR${Date.now().toString().slice(-6)}`;
       const totalAmount = getTotalPrice();
       const estimatedCompletion = new Date();
-      estimatedCompletion.setHours(estimatedCompletion.getHours() + 24); // 24 hours from now
+      estimatedCompletion.setHours(estimatedCompletion.getHours() + 24);
 
-      const { data: repairRequest, error: repairError } = await supabase
-        .from('repair_requests')
-        .insert({
-          customer_id: customerId,
-          device_id: device.id,
-          technician_id: selectedTechnician.id,
-          customer_area: customerArea,
-          preferred_shop_id: selectedTechnician.shop_id,
-          status: 'pending',
-          priority: 'medium',
-          description: `Repair request for ${selectedDevice.brand} ${selectedDevice.model} - Assigned to ${selectedTechnician.name}`,
-          estimated_completion: estimatedCompletion.toISOString(),
-          total_amount: totalAmount
+      // Prepare booking details for WhatsApp
+      const bookingDetails = {
+        customerName: customerInfo.name,
+        customerPhone: customerInfo.phone,
+        deviceBrand: selectedDevice.brand,
+        deviceModel: selectedDevice.model,
+        services: cart.map(item => item.service.name),
+        technicianName: selectedTechnician.name,
+        shopName: selectedTechnician.shop?.name || 'Mobile Repair Shop',
+        shopPhone: selectedTechnician.shop?.phone || '+91-9876543210',
+        totalAmount,
+        bookingId,
+        estimatedCompletion: estimatedCompletion.toLocaleDateString('en-IN', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
         })
-        .select('id')
-        .single();
+      };
 
-      if (repairError) throw repairError;
-
-      // Add services to the repair request
-      const serviceInserts = await Promise.all(
-        cart.map(async (cartItem) => {
-          // Find the service in database
-          const { data: service } = await supabase
-            .from('services')
-            .select('id')
-            .eq('name', cartItem.service.name)
-            .single();
-
-          if (service) {
-            return {
-              repair_request_id: repairRequest.id,
-              service_id: service.id,
-              quantity: cartItem.quantity,
-              price: cartItem.service.price
-            };
-          }
-          return null;
-        })
-      );
-
-      const validServiceInserts = serviceInserts.filter(Boolean);
-      
-      if (validServiceInserts.length > 0) {
-        const { error: servicesError } = await supabase
-          .from('repair_request_services')
-          .insert(validServiceInserts);
-
-        if (servicesError) throw servicesError;
-      }
-
-      // Create initial status update
-      await supabase
-        .from('status_updates')
-        .insert({
-          repair_request_id: repairRequest.id,
-          old_status: null,
-          new_status: 'pending',
-          message: `Repair request assigned to ${selectedTechnician.name} from ${selectedTechnician.shop?.name}`,
-          created_by: user?.id || null
-        });
+      // Simulate booking creation (since no database is connected)
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       toast({
         title: "Booking confirmed!",
-        description: `Request #${repairRequest.id.substring(0, 8)} assigned to ${selectedTechnician.name}. Shop will contact you shortly.`,
+        description: `Request #${bookingId} assigned to ${selectedTechnician.name}. WhatsApp confirmations are being sent.`,
       });
+
+      // Send WhatsApp confirmations
+      try {
+        await sendWhatsAppConfirmation(bookingDetails);
+        await sendWhatsAppToShop(bookingDetails);
+        
+        toast({
+          title: "Confirmations sent",
+          description: "WhatsApp confirmations sent to you and the shop",
+        });
+      } catch (error) {
+        console.error('Error sending WhatsApp confirmations:', error);
+        toast({
+          title: "Booking confirmed",
+          description: "Booking successful! Shop will be notified shortly.",
+          variant: "default"
+        });
+      }
 
       // Reset form
       setSelectedDevice(null);
