@@ -6,17 +6,22 @@ import SelectedDevice from "@/components/booking/SelectedDevice";
 import ServicesSelector from "@/components/booking/ServicesSelector";
 import CustomerDetails from "@/components/booking/CustomerDetails";
 import BookingCart from "@/components/booking/BookingCart";
+import TechnicianSuggestions from "@/components/booking/TechnicianSuggestions";
 import { useBookingCart } from "@/hooks/useBookingCart";
 import { useCustomerInfo } from "@/hooks/useCustomerInfo";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { MobileDevice } from "@/types/booking";
+import { MobileDevice, Service } from "@/types/booking";
+import { EnhancedTechnician } from "@/types/shop";
 
 const BookRepairPage = () => {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [selectedDevice, setSelectedDevice] = useState<MobileDevice | null>(null);
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [selectedTechnician, setSelectedTechnician] = useState<EnhancedTechnician | null>(null);
+  const [customerArea, setCustomerArea] = useState("Pune Center");
   const [activeTab, setActiveTab] = useState("device");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -45,11 +50,39 @@ const BookRepairPage = () => {
     });
   };
 
+  const handleServiceAdd = (service: Service) => {
+    addToCart(service);
+    setSelectedServices(prev => [...prev, service]);
+  };
+
+  const handleServiceRemove = (serviceId: string) => {
+    removeFromCart(serviceId);
+    setSelectedServices(prev => prev.filter(s => s.id !== serviceId));
+  };
+
+  const handleTechnicianSelect = (technician: EnhancedTechnician) => {
+    setSelectedTechnician(technician);
+    setActiveTab("details");
+    toast({
+      title: "Technician selected",
+      description: `${technician.name} from ${technician.shop?.name} selected`,
+    });
+  };
+
   const handleBooking = async () => {
     if (!selectedDevice || cart.length === 0) {
       toast({
         title: "Incomplete booking",
         description: "Please select a device and add services to cart",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!selectedTechnician) {
+      toast({
+        title: "Select technician",
+        description: "Please select a technician to proceed",
         variant: "destructive"
       });
       return;
@@ -138,7 +171,7 @@ const BookRepairPage = () => {
         device.id = newDevice.id;
       }
 
-      // Create the repair request
+      // Create the repair request with selected technician
       const totalAmount = getTotalPrice();
       const estimatedCompletion = new Date();
       estimatedCompletion.setHours(estimatedCompletion.getHours() + 24); // 24 hours from now
@@ -148,9 +181,12 @@ const BookRepairPage = () => {
         .insert({
           customer_id: customerId,
           device_id: device.id,
+          technician_id: selectedTechnician.id,
+          customer_area: customerArea,
+          preferred_shop_id: selectedTechnician.shop_id,
           status: 'pending',
           priority: 'medium',
-          description: `Repair request for ${selectedDevice.brand} ${selectedDevice.model}`,
+          description: `Repair request for ${selectedDevice.brand} ${selectedDevice.model} - Assigned to ${selectedTechnician.name}`,
           estimated_completion: estimatedCompletion.toISOString(),
           total_amount: totalAmount
         })
@@ -198,17 +234,19 @@ const BookRepairPage = () => {
           repair_request_id: repairRequest.id,
           old_status: null,
           new_status: 'pending',
-          message: 'Repair request submitted successfully',
+          message: `Repair request assigned to ${selectedTechnician.name} from ${selectedTechnician.shop?.name}`,
           created_by: user?.id || null
         });
 
       toast({
         title: "Booking confirmed!",
-        description: `Request #${repairRequest.id.substring(0, 8)} created. We'll contact you shortly.`,
+        description: `Request #${repairRequest.id.substring(0, 8)} assigned to ${selectedTechnician.name}. Shop will contact you shortly.`,
       });
 
       // Reset form
       setSelectedDevice(null);
+      setSelectedServices([]);
+      setSelectedTechnician(null);
       clearCart();
       resetCustomerInfo();
       setActiveTab("device");
@@ -231,9 +269,9 @@ const BookRepairPage = () => {
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Book Your Repair</h1>
+          <h1 className="text-3xl font-bold mb-2">Connect with Expert Technicians</h1>
           <p className="text-muted-foreground">
-            Get your device fixed with our expert technicians. Free pickup & drop in Pune.
+            Find local mobile repair experts in Pune. Get your device fixed by certified technicians.
           </p>
         </div>
 
@@ -241,10 +279,11 @@ const BookRepairPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="device">1. Select Device</TabsTrigger>
                 <TabsTrigger value="services" disabled={!selectedDevice}>2. Choose Services</TabsTrigger>
-                <TabsTrigger value="details" disabled={cart.length === 0}>3. Contact Details</TabsTrigger>
+                <TabsTrigger value="technician" disabled={cart.length === 0}>3. Select Technician</TabsTrigger>
+                <TabsTrigger value="details" disabled={!selectedTechnician}>4. Contact Details</TabsTrigger>
               </TabsList>
 
               <TabsContent value="device" className="space-y-6">
@@ -259,9 +298,17 @@ const BookRepairPage = () => {
                   />
                 )}
                 <ServicesSelector 
-                  onAddToCart={addToCart} 
-                  onProceedToDetails={() => setActiveTab("details")}
+                  onAddToCart={handleServiceAdd}
+                  onProceedToDetails={() => setActiveTab("technician")}
                   hasItemsInCart={cart.length > 0}
+                />
+              </TabsContent>
+
+              <TabsContent value="technician" className="space-y-6">
+                <TechnicianSuggestions
+                  selectedServices={selectedServices}
+                  customerArea={customerArea}
+                  onSelectTechnician={handleTechnicianSelect}
                 />
               </TabsContent>
 
@@ -281,7 +328,8 @@ const BookRepairPage = () => {
               totalItems={getTotalItems()}
               totalPrice={getTotalPrice()}
               selectedDevice={selectedDevice}
-              onRemoveFromCart={removeFromCart}
+              selectedTechnician={selectedTechnician}
+              onRemoveFromCart={handleServiceRemove}
               onBooking={handleBooking}
               isSubmitting={isSubmitting}
             />

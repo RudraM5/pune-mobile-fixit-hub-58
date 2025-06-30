@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -146,6 +147,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  // Check if user is admin based on email
+  const isAdminEmail = user?.email === 'mulayrudra2005@gmail.com';
+  const isAdmin = profile?.role === 'admin' || isAdminEmail;
+
   const value: AuthContextType = {
     user,
     session,
@@ -155,7 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     isLoading,
     isAuthenticated: !!user,
-    isAdmin: profile?.role === 'admin',
+    isAdmin,
     isTechnician: profile?.role === 'technician',
     updateProfile
   };
