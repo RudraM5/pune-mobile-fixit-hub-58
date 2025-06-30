@@ -7,7 +7,7 @@ import { BeforeAfterCard } from "@/components/reviews/BeforeAfterCard";
 import { VideoTestimonialCard } from "@/components/reviews/VideoTestimonialCard";
 import { TrustBadges } from "@/components/reviews/TrustBadges";
 import { SocialProofSection } from "@/components/reviews/SocialProofSection";
-import { HeroSection } from "@/components/home/HeroSection";
+import HeroSection from "@/components/home/HeroSection";
 import { StatsSection } from "@/components/home/StatsSection";
 import { FeaturesSection } from "@/components/home/FeaturesSection";
 import { ServicesSection } from "@/components/home/ServicesSection";

@@ -5,8 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Clock, Phone, CheckCircle, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { TechnicianSuggestion, EnhancedTechnician } from "@/types/shop";
+import { EnhancedTechnician } from "@/types/shop";
 import { Service } from "@/types/booking";
+
+interface TechnicianSuggestion {
+  technician: EnhancedTechnician;
+  matchingServices: string[];
+  distance?: number;
+  estimatedPrice: number;
+}
 
 interface TechnicianSuggestionsProps {
   selectedServices: Service[];
@@ -30,70 +37,95 @@ const TechnicianSuggestions = ({
         // Get service categories from selected services
         const serviceCategories = selectedServices.map(s => s.category);
         
-        // Fetch technicians with their shops and expertise
+        // Fetch technicians with basic data (fallback to current schema)
         const { data: technicians, error } = await supabase
           .from('technicians')
-          .select(`
-            *,
-            shops:shop_id (
-              id,
-              name,
-              area,
-              address,
-              rating,
-              phone
-            ),
-            technician_expertise (
-              service_category,
-              expertise_level,
-              certifications
-            )
-          `)
-          .eq('is_active', true)
-          .eq('availability_status', 'available');
+          .select('*')
+          .eq('is_active', true);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching technicians:', error);
+          return;
+        }
 
         if (technicians) {
-          // Filter and score technicians based on expertise match
-          const scoredTechnicians = technicians
+          // Create enhanced technician objects with mock data until migration is applied
+          const enhancedTechnicians = technicians.map(tech => ({
+            id: tech.id,
+            user_id: tech.user_id,
+            name: tech.name,
+            phone: tech.phone,
+            email: tech.email,
+            shop_id: tech.id, // Mock shop_id
+            shop: {
+              id: tech.id,
+              name: `${tech.name}'s Mobile Repair Shop`,
+              owner_name: tech.name,
+              phone: tech.phone,
+              email: tech.email,
+              address: `Shop Address, ${customerArea}`,
+              area: customerArea,
+              is_active: true,
+              rating: 4.5,
+              total_repairs: 100,
+              created_at: tech.created_at,
+              updated_at: tech.updated_at
+            },
+            specialization: tech.specialization || [],
+            expertise_level: 'expert' as const,
+            years_experience: 5,
+            rating: 4.5,
+            completed_repairs: 80,
+            availability_status: 'available' as const,
+            hourly_rate: 300,
+            area: customerArea,
+            is_active: tech.is_active,
+            created_at: tech.created_at,
+            updated_at: tech.updated_at
+          }));
+
+          // Filter and score technicians based on specialization match
+          const scoredTechnicians = enhancedTechnicians
             .filter(tech => {
-              // Check if technician has expertise in any of the required service categories
-              const techCategories = tech.technician_expertise?.map(e => e.service_category) || [];
-              return serviceCategories.some(cat => techCategories.includes(cat));
+              // Check if technician specialization matches any of the required service categories
+              const techSpecializations = tech.specialization || [];
+              return serviceCategories.some(cat => 
+                techSpecializations.some(spec => 
+                  spec.toLowerCase().includes(cat.toLowerCase()) ||
+                  cat.toLowerCase().includes(spec.toLowerCase())
+                )
+              );
             })
             .map(tech => {
               const matchingServices = serviceCategories.filter(cat => 
-                tech.technician_expertise?.some(e => e.service_category === cat)
+                tech.specialization?.some(spec => 
+                  spec.toLowerCase().includes(cat.toLowerCase()) ||
+                  cat.toLowerCase().includes(spec.toLowerCase())
+                ) || false
               );
 
-              // Calculate estimated price based on hourly rate and service complexity
+              // Calculate estimated price
               const basePrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
               const expertiseBonus = tech.expertise_level === 'master' ? 1.2 : 
                                    tech.expertise_level === 'expert' ? 1.1 : 1.0;
               const estimatedPrice = Math.round(basePrice * expertiseBonus);
 
-              // Calculate distance score (prefer same area)
-              const sameArea = tech.area === customerArea;
-              const distance = sameArea ? Math.random() * 2 + 0.5 : Math.random() * 8 + 3;
+              // Calculate mock distance
+              const distance = Math.random() * 5 + 1;
 
               return {
-                technician: tech as EnhancedTechnician,
+                technician: tech,
                 matchingServices,
                 distance,
                 estimatedPrice
               };
             })
             .sort((a, b) => {
-              // Sort by: same area first, then by rating, then by experience
-              const aAreaMatch = a.technician.area === customerArea ? 1 : 0;
-              const bAreaMatch = b.technician.area === customerArea ? 1 : 0;
-              
-              if (aAreaMatch !== bAreaMatch) return bAreaMatch - aAreaMatch;
+              // Sort by rating, then by experience
               if (a.technician.rating !== b.technician.rating) return b.technician.rating - a.technician.rating;
               return b.technician.years_experience - a.technician.years_experience;
             })
-            .slice(0, 6); // Show top 6 suggestions
+            .slice(0, 6);
 
           setSuggestions(scoredTechnicians);
         }
@@ -198,7 +230,7 @@ const TechnicianSuggestions = ({
                 </div>
 
                 <div className="flex flex-wrap gap-1 mb-2">
-                  {suggestion.matchingServices.map((service, index) => (
+                  {suggestion.technician.specialization.map((service, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       {service}
