@@ -8,11 +8,11 @@ import ServicesSelector from "@/components/booking/ServicesSelector";
 import CustomerDetails from "@/components/booking/CustomerDetails";
 import BookingCart from "@/components/booking/BookingCart";
 import TechnicianSuggestions from "@/components/booking/TechnicianSuggestions";
-import { useBookingCart } from "@/hooks/useBookingCart";
+import AreaSearch from "@/components/booking/AreaSearch";
+import { useCart } from "@/contexts/CartContext";
 import { useCustomerInfo } from "@/hooks/useCustomerInfo";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { MobileDevice, Service } from "@/types/booking";
 import { EnhancedTechnician } from "@/types/shop";
 import { sendWhatsAppConfirmation, sendWhatsAppToShop } from "@/utils/whatsappService";
@@ -34,7 +34,7 @@ const BookRepairPage = () => {
     getTotalPrice,
     getTotalItems,
     clearCart
-  } = useBookingCart();
+  } = useCart();
 
   const {
     customerInfo,
@@ -192,11 +192,12 @@ const BookRepairPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="device">1. Select Device</TabsTrigger>
-                <TabsTrigger value="services" disabled={!selectedDevice}>2. Choose Services</TabsTrigger>
-                <TabsTrigger value="technician" disabled={cart.length === 0}>3. Select Technician</TabsTrigger>
-                <TabsTrigger value="details" disabled={!selectedTechnician}>4. Contact Details</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="device">1. Device</TabsTrigger>
+                <TabsTrigger value="services" disabled={!selectedDevice}>2. Services</TabsTrigger>
+                <TabsTrigger value="area" disabled={cart.length === 0}>3. Search Area</TabsTrigger>
+                <TabsTrigger value="technician" disabled={cart.length === 0}>4. Technician</TabsTrigger>
+                <TabsTrigger value="details" disabled={!selectedTechnician}>5. Details</TabsTrigger>
               </TabsList>
 
               <TabsContent value="device" className="space-y-6">
@@ -212,8 +213,27 @@ const BookRepairPage = () => {
                 )}
                 <ServicesSelector 
                   onAddToCart={handleServiceAdd}
-                  onProceedToDetails={() => setActiveTab("technician")}
+                  onProceedToDetails={() => setActiveTab("area")}
                   hasItemsInCart={cart.length > 0}
+                />
+              </TabsContent>
+
+              <TabsContent value="area" className="space-y-6">
+                <AreaSearch 
+                  onTechnicianSelect={(technician, shop) => {
+                    const enhancedTechnician = {
+                      ...technician,
+                      shop_id: shop.id,
+                      shop: shop,
+                      area: shop.area,
+                      hourly_rate: 300,
+                      is_active: true,
+                      user_id: technician.id,
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString()
+                    };
+                    handleTechnicianSelect(enhancedTechnician);
+                  }}
                 />
               </TabsContent>
 

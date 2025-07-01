@@ -1,70 +1,20 @@
-import { useState } from "react";
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/layout/Header";
 import { ShoppingCart, Trash2, Plus, Minus, Clock, Shield, Truck } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-interface CartItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  duration: string;
-  quantity: number;
-  category: string;
-}
+import { useCart } from "@/contexts/CartContext";
 
 const CartPage = () => {
-  const { toast } = useToast();
-  
-  // Empty cart by default - items should only appear when added
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-
-  const updateQuantity = (id: string, change: number) => {
-    setCartItems(items => 
-      items.map(item => {
-        if (item.id === id) {
-          const newQuantity = Math.max(0, item.quantity + change);
-          if (newQuantity === 0) {
-            toast({
-              title: "Item removed",
-              description: `${item.name} removed from cart`,
-            });
-            return null;
-          }
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      }).filter(Boolean) as CartItem[]
-    );
-  };
-
-  const removeItem = (id: string) => {
-    const item = cartItems.find(item => item.id === id);
-    setCartItems(items => items.filter(item => item.id !== id));
-    toast({
-      title: "Item removed",
-      description: `${item?.name} removed from cart`,
-    });
-  };
-
-  const getSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+  const { cart, updateQuantity, removeFromCart, getTotalPrice, getTotalItems } = useCart();
 
   const estimatedDuration = () => {
     // Simple duration calculation - in real app this would be more sophisticated
-    const totalMinutes = cartItems.reduce((total, item) => {
-      const minutes = parseInt(item.duration) || 30;
+    const totalMinutes = cart.reduce((total, item) => {
+      const minutes = parseInt(item.service.duration) || 30;
       return total + (minutes * item.quantity);
     }, 0);
     
@@ -86,7 +36,7 @@ const CartPage = () => {
           </p>
         </div>
 
-        {cartItems.length === 0 ? (
+        {cart.length === 0 ? (
           <Card>
             <CardContent className="text-center py-12">
               <ShoppingCart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -120,20 +70,20 @@ const CartPage = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                  {cart.map((item) => (
+                    <div key={item.service.id} className="flex items-center space-x-4 p-4 border rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium">{item.name}</h4>
+                          <h4 className="font-medium">{item.service.name}</h4>
                           <Badge variant="outline" className="text-xs">
-                            {item.category}
+                            {item.service.category}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
+                        <p className="text-sm text-muted-foreground mb-2">{item.service.description}</p>
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <div className="flex items-center">
                             <Clock className="h-3 w-3 mr-1" />
-                            {item.duration}
+                            {item.service.duration}
                           </div>
                         </div>
                       </div>
@@ -143,7 +93,7 @@ const CartPage = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() => updateQuantity(item.service.id, item.quantity - 1)}
                             className="h-8 w-8 p-0"
                           >
                             <Minus className="h-3 w-3" />
@@ -152,7 +102,7 @@ const CartPage = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() => updateQuantity(item.service.id, item.quantity + 1)}
                             className="h-8 w-8 p-0"
                           >
                             <Plus className="h-3 w-3" />
@@ -160,16 +110,16 @@ const CartPage = () => {
                         </div>
                         
                         <div className="text-right min-w-[80px]">
-                          <p className="font-medium">₹{item.price * item.quantity}</p>
+                          <p className="font-medium">₹{item.service.price * item.quantity}</p>
                           {item.quantity > 1 && (
-                            <p className="text-xs text-muted-foreground">₹{item.price} each</p>
+                            <p className="text-xs text-muted-foreground">₹{item.service.price} each</p>
                           )}
                         </div>
                         
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeFromCart(item.service.id)}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -223,7 +173,7 @@ const CartPage = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Subtotal ({getTotalItems()} items):</span>
-                      <span>₹{getSubtotal()}</span>
+                      <span>₹{getTotalPrice()}</span>
                     </div>
                     <div className="flex justify-between text-sm text-green-600">
                       <span>Pickup & Drop:</span>
@@ -236,7 +186,7 @@ const CartPage = () => {
                     <Separator />
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total:</span>
-                      <span>₹{getSubtotal()}</span>
+                      <span>₹{getTotalPrice()}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       *Final quote will be provided after device inspection
