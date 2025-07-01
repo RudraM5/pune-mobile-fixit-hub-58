@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Wrench, Clock, TrendingUp } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { getStatusBadge, getPriorityBadge } from "@/utils/adminHelpers";
+import { Badge } from "@/components/ui/badge";
 
 interface Analytics {
   totalRequests: number;
@@ -35,85 +35,61 @@ const OverviewTab = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      await Promise.all([fetchAnalytics(), fetchRecentRequests()]);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAnalytics = async () => {
-    const { data: requests } = await supabase
-      .from('repair_requests')
-      .select('status, created_at, total_amount');
-
-    const today = new Date().toISOString().split('T')[0];
-    const totalRequests = requests?.length || 0;
-    const pendingRequests = requests?.filter(r => r.status === 'pending').length || 0;
-    const inProgressRequests = requests?.filter(r => r.status === 'in-progress').length || 0;
-    const completedToday = requests?.filter(r => 
-      r.status === 'completed' && r.created_at.startsWith(today)
-    ).length || 0;
-    const revenue = requests?.reduce((sum, r) => sum + (r.total_amount || 0), 0) || 0;
-
-    setAnalytics({
-      totalRequests,
-      pendingRequests,
-      inProgressRequests,
-      completedToday,
-      revenue,
+    // Mock data - replace with your database service
+    const mockAnalytics: Analytics = {
+      totalRequests: 45,
+      pendingRequests: 8,
+      inProgressRequests: 12,
+      completedToday: 5,
+      revenue: 25600,
       avgRepairTime: '2.5 hours',
       customerSatisfaction: 4.8,
       topTechnician: 'Raj Kumar'
-    });
+    };
+
+    const mockRequests: RepairRequest[] = [
+      {
+        id: 'REQ001',
+        customerName: 'John Doe',
+        phone: '+91-9876543210',
+        device: 'iPhone 14',
+        services: ['Screen Replacement'],
+        status: 'pending',
+        priority: 'high',
+        createdAt: new Date().toISOString(),
+        estimatedCompletion: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        totalAmount: 2999
+      }
+    ];
+
+    setTimeout(() => {
+      setAnalytics(mockAnalytics);
+      setRecentRequests(mockRequests);
+      setLoading(false);
+    }, 1000);
+  }, []);
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'pending': { variant: 'outline' as const, color: 'text-yellow-600' },
+      'in-progress': { variant: 'default' as const, color: 'text-blue-600' },
+      'completed': { variant: 'default' as const, color: 'text-green-600' },
+      'delivered': { variant: 'secondary' as const, color: 'text-gray-600' }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge variant={config.variant} className={config.color}>{status}</Badge>;
   };
 
-  const fetchRecentRequests = async () => {
-    const { data, error } = await supabase
-      .from('repair_requests')
-      .select(`
-        id,
-        status,
-        priority,
-        created_at,
-        estimated_completion,
-        total_amount,
-        customers!inner(name, phone),
-        devices!inner(brand, model),
-        technicians(name),
-        repair_request_services!inner(
-          services!inner(name)
-        )
-      `)
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    if (error) {
-      console.error('Error fetching recent requests:', error);
-      return;
-    }
-
-    const formattedRequests = data?.map(request => ({
-      id: request.id.substring(0, 8),
-      customerName: request.customers.name,
-      phone: request.customers.phone,
-      device: `${request.devices.brand} ${request.devices.model}`,
-      services: request.repair_request_services.map((rrs: any) => rrs.services.name),
-      status: request.status as "pending" | "in-progress" | "completed" | "delivered",
-      priority: request.priority as "low" | "medium" | "high",
-      createdAt: request.created_at,
-      estimatedCompletion: request.estimated_completion,
-      totalAmount: request.total_amount,
-      technician: request.technicians?.name
-    })) || [];
-
-    setRecentRequests(formattedRequests);
+  const getPriorityBadge = (priority: string) => {
+    const priorityConfig = {
+      'low': { variant: 'outline' as const, color: 'text-green-600' },
+      'medium': { variant: 'default' as const, color: 'text-yellow-600' },
+      'high': { variant: 'destructive' as const, color: 'text-red-600' }
+    };
+    
+    const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.medium;
+    return <Badge variant={config.variant} className={config.color}>{priority}</Badge>;
   };
 
   if (loading) {
@@ -126,6 +102,7 @@ const OverviewTab = () => {
       </div>
     );
   }
+
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
@@ -183,29 +160,29 @@ const OverviewTab = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-              {recentRequests.slice(0, 5).map(request => (
-                <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">#{request.id}</span>
-                      {getStatusBadge(request.status)}
-                      {getPriorityBadge(request.priority)}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {request.customerName} - {request.device}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {request.services.join(", ")}
-                    </p>
+            {recentRequests.slice(0, 5).map(request => (
+              <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">#{request.id}</span>
+                    {getStatusBadge(request.status)}
+                    {getPriorityBadge(request.priority)}
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">₹{request.totalAmount.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(request.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {request.customerName} - {request.device}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {request.services.join(", ")}
+                  </p>
                 </div>
-              ))}
+                <div className="text-right">
+                  <p className="font-medium">₹{request.totalAmount.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(request.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

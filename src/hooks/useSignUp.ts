@@ -1,7 +1,6 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { validateSignUpForm } from '@/utils/authValidation';
 
 export const useSignUp = (onSuccess: () => void) => {
   const [email, setEmail] = useState('');
@@ -12,7 +11,6 @@ export const useSignUp = (onSuccess: () => void) => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { signUp } = useAuth();
-  const { toast } = useToast();
 
   const clearForm = () => {
     setEmail('');
@@ -25,13 +23,18 @@ export const useSignUp = (onSuccess: () => void) => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validation = validateSignUpForm(email, password, confirmPassword, displayName);
-    if (!validation.isValid) {
-      toast({
-        title: validation.error!.title,
-        description: validation.error!.description,
-        variant: "destructive"
-      });
+    if (!email.trim() || !password.trim() || !confirmPassword.trim() || !displayName.trim()) {
+      console.log('Please fill in all required fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      console.log('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      console.log('Password must be at least 6 characters');
       return;
     }
 
@@ -45,36 +48,14 @@ export const useSignUp = (onSuccess: () => void) => {
       });
       
       if (!error) {
-        toast({
-          title: "Account Created Successfully!",
-          description: "Please check your email to confirm your account before signing in.",
-        });
+        console.log('Account created successfully');
         clearForm();
         onSuccess();
       } else {
-        // More specific error handling
-        let errorMessage = "Failed to create account. Please try again.";
-        
-        if (error.message?.includes("already registered")) {
-          errorMessage = "An account with this email already exists. Please sign in instead.";
-        } else if (error.message?.includes("email")) {
-          errorMessage = "Please enter a valid email address.";
-        } else if (error.message?.includes("password")) {
-          errorMessage = "Password requirements not met. Please choose a stronger password.";
-        }
-        
-        toast({
-          title: "Sign Up Failed",
-          description: errorMessage,
-          variant: "destructive"
-        });
+        console.log('Sign up failed:', error.message);
       }
     } catch (err) {
-      toast({
-        title: "Network Error",
-        description: "Please check your connection and try again.",
-        variant: "destructive"
-      });
+      console.log('Network error occurred');
     } finally {
       setIsLoading(false);
     }

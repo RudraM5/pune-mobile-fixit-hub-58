@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Clock, Phone, CheckCircle, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { EnhancedTechnician } from "@/types/shop";
 import { Service } from "@/types/booking";
 
@@ -167,7 +165,7 @@ const TechnicianSuggestions = ({
         // Get service categories from selected services
         const serviceCategories = selectedServices.map(s => s.category);
         
-        // Use dummy data for now since database might not be connected
+        // Use dummy data - replace with your database service
         const enhancedTechnicians = dummyTechnicians;
 
         // Filter and score technicians based on specialization match

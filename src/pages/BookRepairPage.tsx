@@ -11,14 +11,11 @@ import TechnicianSuggestions from "@/components/booking/TechnicianSuggestions";
 import AreaSearch from "@/components/booking/AreaSearch";
 import { useCart } from "@/contexts/CartContext";
 import { useCustomerInfo } from "@/hooks/useCustomerInfo";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { MobileDevice, Service } from "@/types/booking";
 import { EnhancedTechnician } from "@/types/shop";
-import { sendWhatsAppConfirmation, sendWhatsAppToShop } from "@/utils/whatsappService";
 
 const BookRepairPage = () => {
-  const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const [selectedDevice, setSelectedDevice] = useState<MobileDevice | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -46,10 +43,7 @@ const BookRepairPage = () => {
   const handleDeviceSelect = (device: MobileDevice) => {
     setSelectedDevice(device);
     setActiveTab("services");
-    toast({
-      title: "Device selected",
-      description: `${device.brand} ${device.model} selected`,
-    });
+    console.log(`${device.brand} ${device.model} selected`);
   };
 
   const handleServiceAdd = (service: Service) => {
@@ -65,37 +59,22 @@ const BookRepairPage = () => {
   const handleTechnicianSelect = (technician: EnhancedTechnician) => {
     setSelectedTechnician(technician);
     setActiveTab("details");
-    toast({
-      title: "Technician selected",
-      description: `${technician.name} from ${technician.shop?.name} selected`,
-    });
+    console.log(`${technician.name} from ${technician.shop?.name} selected`);
   };
 
   const handleBooking = async () => {
     if (!selectedDevice || cart.length === 0) {
-      toast({
-        title: "Incomplete booking",
-        description: "Please select a device and add services to cart",
-        variant: "destructive"
-      });
+      console.log("Please select a device and add services to cart");
       return;
     }
 
     if (!selectedTechnician) {
-      toast({
-        title: "Select technician",
-        description: "Please select a technician to proceed",
-        variant: "destructive"
-      });
+      console.log("Please select a technician to proceed");
       return;
     }
 
     if (!isCustomerInfoValid()) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in your contact details",
-        variant: "destructive"
-      });
+      console.log("Please fill in your contact details");
       return;
     }
 
@@ -105,56 +84,11 @@ const BookRepairPage = () => {
       // Generate a mock booking ID for demo purposes
       const bookingId = `MR${Date.now().toString().slice(-6)}`;
       const totalAmount = getTotalPrice();
-      const estimatedCompletion = new Date();
-      estimatedCompletion.setHours(estimatedCompletion.getHours() + 24);
 
-      // Prepare booking details for WhatsApp
-      const bookingDetails = {
-        customerName: customerInfo.name,
-        customerPhone: customerInfo.phone,
-        deviceBrand: selectedDevice.brand,
-        deviceModel: selectedDevice.model,
-        services: cart.map(item => item.service.name),
-        technicianName: selectedTechnician.name,
-        shopName: selectedTechnician.shop?.name || 'Mobile Repair Shop',
-        shopPhone: selectedTechnician.shop?.phone || '+91-9876543210',
-        totalAmount,
-        bookingId,
-        estimatedCompletion: estimatedCompletion.toLocaleDateString('en-IN', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      };
-
-      // Simulate booking creation (since no database is connected)
+      // Simulate booking creation
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      toast({
-        title: "Booking confirmed!",
-        description: `Request #${bookingId} assigned to ${selectedTechnician.name}. WhatsApp confirmations are being sent.`,
-      });
-
-      // Send WhatsApp confirmations
-      try {
-        await sendWhatsAppConfirmation(bookingDetails);
-        await sendWhatsAppToShop(bookingDetails);
-        
-        toast({
-          title: "Confirmations sent",
-          description: "WhatsApp confirmations sent to you and the shop",
-        });
-      } catch (error) {
-        console.error('Error sending WhatsApp confirmations:', error);
-        toast({
-          title: "Booking confirmed",
-          description: "Booking successful! Shop will be notified shortly.",
-          variant: "default"
-        });
-      }
+      console.log(`Booking confirmed! Request #${bookingId} assigned to ${selectedTechnician.name}`);
 
       // Reset form
       setSelectedDevice(null);
@@ -166,11 +100,6 @@ const BookRepairPage = () => {
 
     } catch (error) {
       console.error('Error creating booking:', error);
-      toast({
-        title: "Booking failed",
-        description: "There was an error processing your booking. Please try again.",
-        variant: "destructive"
-      });
     } finally {
       setIsSubmitting(false);
     }

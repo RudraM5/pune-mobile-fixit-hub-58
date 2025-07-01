@@ -1,24 +1,22 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 
 interface Profile {
   id: string;
-  user_id: string;
   display_name: string | null;
   phone: string | null;
   avatar_url: string | null;
   role: 'customer' | 'admin' | 'technician';
 }
 
-interface AuthUser extends User {
+interface AuthUser {
+  id: string;
+  email: string;
   profile?: Profile;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
-  session: Session | null;
   profile: Profile | null;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -42,118 +40,49 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return null;
-    }
-    
-    return data;
-  };
-
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          // Fetch user profile
-          setTimeout(async () => {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-            setUser(prev => prev ? { ...prev, profile: profileData } : null);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-        
-        setIsLoading(false);
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id).then(profileData => {
-          setProfile(profileData);
-          setUser(prev => prev ? { ...prev, profile: profileData } : null);
-          setIsLoading(false);
-        });
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
+  // Mock authentication - replace with your preferred auth solution
   const signUp = async (email: string, password: string, metadata = {}) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: metadata
-      }
-    });
-    
-    return { error };
+    try {
+      // TODO: Replace with actual authentication service
+      console.log('Sign up:', { email, password, metadata });
+      return { error: new Error('Authentication service not connected') };
+    } catch (error) {
+      return { error };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    
-    return { error };
+    try {
+      // TODO: Replace with actual authentication service
+      console.log('Sign in:', { email, password });
+      return { error: new Error('Authentication service not connected') };
+    } catch (error) {
+      return { error };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return { error: new Error('No user logged in') };
-
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('user_id', user.id);
-
-    if (!error) {
-      const updatedProfile = { ...profile, ...updates } as Profile;
-      setProfile(updatedProfile);
-      setUser(prev => prev ? { ...prev, profile: updatedProfile } : null);
-    }
-
-    return { error };
+    
+    // TODO: Replace with actual profile update service
+    const updatedProfile = { ...profile, ...updates } as Profile;
+    setProfile(updatedProfile);
+    return { error: null };
   };
 
-  // Check if user is admin based on email
-  const isAdminEmail = user?.email === 'mulayrudra2005@gmail.com';
-  const isAdmin = profile?.role === 'admin' || isAdminEmail;
+  // Mock admin check - update based on your requirements
+  const isAdmin = profile?.role === 'admin' || user?.email === 'admin@example.com';
 
   const value: AuthContextType = {
     user,
-    session,
     profile,
     signUp,
     signIn,

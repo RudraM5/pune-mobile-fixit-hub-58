@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { CartItem, Service } from '@/types/booking';
-import { useToast } from '@/hooks/use-toast';
 
 interface CartContextType {
   cart: CartItem[];
@@ -28,7 +27,6 @@ interface CartProviderProps {
 }
 
 export const CartProvider = ({ children }: CartProviderProps) => {
-  const { toast } = useToast();
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const addToCart = (service: Service) => {
@@ -42,10 +40,9 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     } else {
       setCart([...cart, { service, quantity: 1 }]);
     }
-    toast({
-      title: "Added to cart",
-      description: `${service.name} has been added to your cart`,
-    });
+    
+    // Simple notification instead of toast
+    console.log(`${service.name} added to cart`);
   };
 
   const removeFromCart = (serviceId: string) => {

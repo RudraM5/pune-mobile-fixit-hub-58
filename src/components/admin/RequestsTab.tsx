@@ -1,12 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { getStatusBadge, getPriorityBadge } from "@/utils/adminHelpers";
-import { useToast } from "@/hooks/use-toast";
 
 interface RepairRequest {
   id: string;
@@ -27,100 +26,63 @@ const RequestsTab = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const { toast } = useToast();
 
   useEffect(() => {
-    fetchRequests();
+    // Mock data - replace with your database service
+    const mockRequests: RepairRequest[] = [
+      {
+        id: 'REQ001',
+        customerName: 'John Doe',
+        phone: '+91-9876543210',
+        device: 'iPhone 14',
+        services: ['Screen Replacement'],
+        status: 'pending',
+        priority: 'high',
+        createdAt: new Date().toISOString(),
+        estimatedCompletion: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+        totalAmount: 2999,
+        technician: 'Raj Kumar'
+      }
+    ];
+
+    setTimeout(() => {
+      setRequests(mockRequests);
+      setLoading(false);
+    }, 1000);
   }, []);
 
-  const fetchRequests = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('repair_requests')
-        .select(`
-          id,
-          status,
-          priority,
-          created_at,
-          estimated_completion,
-          total_amount,
-          customers!inner(name, phone),
-          devices!inner(brand, model),
-          technicians(name),
-          repair_request_services!inner(
-            services!inner(name)
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedRequests = data?.map(request => ({
-        id: request.id.substring(0, 8),
-        customerName: request.customers.name,
-        phone: request.customers.phone,
-        device: `${request.devices.brand} ${request.devices.model}`,
-        services: request.repair_request_services.map((rrs: any) => rrs.services.name),
-        status: request.status as "pending" | "in-progress" | "completed" | "delivered",
-        priority: request.priority as "low" | "medium" | "high",
-        createdAt: request.created_at,
-        estimatedCompletion: request.estimated_completion,
-        totalAmount: request.total_amount,
-        technician: request.technicians?.name
-      })) || [];
-
-      setRequests(formattedRequests);
-    } catch (error) {
-      console.error('Error fetching requests:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch repair requests",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'pending': { variant: 'outline' as const, color: 'text-yellow-600' },
+      'in-progress': { variant: 'default' as const, color: 'text-blue-600' },
+      'completed': { variant: 'default' as const, color: 'text-green-600' },
+      'delivered': { variant: 'secondary' as const, color: 'text-gray-600' }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge variant={config.variant} className={config.color}>{status}</Badge>;
   };
 
-  const updateRequestStatus = async (requestId: string, newStatus: string) => {
-    try {
-      // Find the full UUID from our requests
-      const { data: fullRequest } = await supabase
-        .from('repair_requests')
-        .select('id')
-        .eq('id', requests.find(r => r.id === requestId)?.id || requestId)
-        .single();
+  const getPriorityBadge = (priority: string) => {
+    const priorityConfig = {
+      'low': { variant: 'outline' as const, color: 'text-green-600' },
+      'medium': { variant: 'default' as const, color: 'text-yellow-600' },
+      'high': { variant: 'destructive' as const, color: 'text-red-600' }
+    };
+    
+    const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.medium;
+    return <Badge variant={config.variant} className={config.color}>{priority}</Badge>;
+  };
 
-      if (!fullRequest) throw new Error('Request not found');
-
-      const { error } = await supabase
-        .from('repair_requests')
-        .update({ status: newStatus })
-        .eq('id', fullRequest.id);
-
-      if (error) throw error;
-
-      // Update local state
-      setRequests(prev => 
-        prev.map(req => 
-          req.id === requestId 
-            ? { ...req, status: newStatus as any }
-            : req
-        )
-      );
-
-      toast({
-        title: "Status Updated",
-        description: `Request status changed to ${newStatus}`,
-      });
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update request status",
-        variant: "destructive"
-      });
-    }
+  const updateRequestStatus = (requestId: string, newStatus: string) => {
+    setRequests(prev => 
+      prev.map(req => 
+        req.id === requestId 
+          ? { ...req, status: newStatus as any }
+          : req
+      )
+    );
+    console.log(`Request ${requestId} status changed to ${newStatus}`);
   };
 
   const filterRequests = (requests: RepairRequest[], searchTerm: string, statusFilter: string) => {

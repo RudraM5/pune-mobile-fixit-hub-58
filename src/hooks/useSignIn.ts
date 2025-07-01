@@ -1,8 +1,7 @@
+
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { validateSignInForm } from '@/utils/authValidation';
 
 export const useSignIn = () => {
   const [email, setEmail] = useState('');
@@ -10,7 +9,6 @@ export const useSignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { signIn } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -19,13 +17,8 @@ export const useSignIn = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validation = validateSignInForm(email, password);
-    if (!validation.isValid) {
-      toast({
-        title: validation.error!.title,
-        description: validation.error!.description,
-        variant: "destructive"
-      });
+    if (!email.trim() || !password.trim()) {
+      console.log('Please fill in all fields');
       return;
     }
 
@@ -33,17 +26,10 @@ export const useSignIn = () => {
     const { error } = await signIn(email, password);
     
     if (!error) {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back!",
-      });
+      console.log('Login successful');
       navigate(from, { replace: true });
     } else {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Invalid credentials. Please try again.",
-        variant: "destructive"
-      });
+      console.log('Login failed:', error.message);
       setIsLoading(false);
     }
   };
