@@ -49,6 +49,13 @@ const BookRepairPage = () => {
   const handleServiceAdd = (service: Service) => {
     addToCart(service);
     setSelectedServices(prev => [...prev, service]);
+    
+    // Automatically move to area tab after adding first service
+    if (cart.length === 0) {
+      setTimeout(() => {
+        setActiveTab("area");
+      }, 500);
+    }
   };
 
   const handleServiceRemove = (serviceId: string) => {

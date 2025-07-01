@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,9 @@ const SelectedDevice = ({ device, onChangeDevice }: SelectedDeviceProps) => {
   return (
     <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200 shadow-md">
       <CardHeader>
-        <CardTitle>Selected Device</CardTitle>
+        <CardTitle className="text-gray-800">Selected Device</CardTitle>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-lg px-4 py-2 bg-white shadow-sm">
+          <Badge variant="outline" className="text-lg px-4 py-2 bg-white shadow-sm text-gray-800 border-gray-300">
             {device.brand} {device.model}
           </Badge>
           <Button

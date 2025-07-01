@@ -1,34 +1,103 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-interface Profile {
-  id: string;
-  display_name: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-  role: 'customer' | 'admin' | 'technician';
-}
-
-interface AuthUser {
+interface User {
   id: string;
   email: string;
-  profile?: Profile;
+  display_name?: string;
+  role?: string;
 }
 
 interface AuthContextType {
-  user: AuthUser | null;
-  profile: Profile | null;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  isLoading: boolean;
+  user: User | null;
   isAuthenticated: boolean;
-  isAdmin: boolean;
-  isTechnician: boolean;
-  updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
+  isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<{ error?: { message: string } }>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ error?: { message: string } }>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
+    
+    // Mock authentication - simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check for demo admin credentials
+    if (email === 'admin@mobilerepairwala.com' && password === 'admin123') {
+      const mockUser = {
+        id: '1',
+        email: email,
+        display_name: 'Admin User',
+        role: 'admin'
+      };
+      setUser(mockUser);
+      setIsLoading(false);
+      console.log('Login successful:', mockUser);
+      return { error: undefined };
+    }
+    
+    // Check for demo user credentials
+    if (email === 'user@example.com' && password === 'user123') {
+      const mockUser = {
+        id: '2',
+        email: email,
+        display_name: 'Demo User',
+        role: 'user'
+      };
+      setUser(mockUser);
+      setIsLoading(false);
+      console.log('Login successful:', mockUser);
+      return { error: undefined };
+    }
+    
+    setIsLoading(false);
+    return { error: { message: 'Invalid credentials. Use admin@mobilerepairwala.com / admin123 or user@example.com / user123' } };
+  };
+
+  const signUp = async (email: string, password: string, displayName: string) => {
+    setIsLoading(true);
+    
+    // Mock sign up - simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const mockUser = {
+      id: Date.now().toString(),
+      email: email,
+      display_name: displayName,
+      role: 'user'
+    };
+    
+    setUser(mockUser);
+    setIsLoading(false);
+    console.log('Sign up successful:', mockUser);
+    return { error: undefined };
+  };
+
+  const signOut = async () => {
+    setUser(null);
+    console.log('User signed out');
+  };
+
+  return (
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated: !!user,
+      isLoading,
+      signIn,
+      signUp,
+      signOut
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -36,67 +105,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Mock authentication - replace with your preferred auth solution
-  const signUp = async (email: string, password: string, metadata = {}) => {
-    try {
-      // TODO: Replace with actual authentication service
-      console.log('Sign up:', { email, password, metadata });
-      return { error: new Error('Authentication service not connected') };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      // TODO: Replace with actual authentication service
-      console.log('Sign in:', { email, password });
-      return { error: new Error('Authentication service not connected') };
-    } catch (error) {
-      return { error };
-    }
-  };
-
-  const signOut = async () => {
-    setUser(null);
-    setProfile(null);
-  };
-
-  const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: new Error('No user logged in') };
-    
-    // TODO: Replace with actual profile update service
-    const updatedProfile = { ...profile, ...updates } as Profile;
-    setProfile(updatedProfile);
-    return { error: null };
-  };
-
-  // Mock admin check - update based on your requirements
-  const isAdmin = profile?.role === 'admin' || user?.email === 'admin@example.com';
-
-  const value: AuthContextType = {
-    user,
-    profile,
-    signUp,
-    signIn,
-    signOut,
-    isLoading,
-    isAuthenticated: !!user,
-    isAdmin,
-    isTechnician: profile?.role === 'technician',
-    updateProfile
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
 };
