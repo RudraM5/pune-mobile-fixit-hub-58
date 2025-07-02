@@ -8,9 +8,16 @@ interface User {
   role?: string;
 }
 
+interface Profile {
+  display_name?: string;
+  phone?: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: { message: string } }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error?: { message: string } }>;
@@ -21,6 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const signIn = async (email: string, password: string) => {
@@ -37,7 +45,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         display_name: 'Admin User',
         role: 'admin'
       };
+      const mockProfile = {
+        display_name: 'Admin User',
+        phone: '+91 9876543210'
+      };
       setUser(mockUser);
+      setProfile(mockProfile);
       setIsLoading(false);
       console.log('Login successful:', mockUser);
       return { error: undefined };
@@ -51,7 +64,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         display_name: 'Demo User',
         role: 'user'
       };
+      const mockProfile = {
+        display_name: 'Demo User',
+        phone: '+91 9876543211'
+      };
       setUser(mockUser);
+      setProfile(mockProfile);
       setIsLoading(false);
       console.log('Login successful:', mockUser);
       return { error: undefined };
@@ -74,7 +92,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       role: 'user'
     };
     
+    const mockProfile = {
+      display_name: displayName,
+      phone: ''
+    };
+    
     setUser(mockUser);
+    setProfile(mockProfile);
     setIsLoading(false);
     console.log('Sign up successful:', mockUser);
     return { error: undefined };
@@ -82,13 +106,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     setUser(null);
+    setProfile(null);
     console.log('User signed out');
   };
+
+  const isAdmin = user?.role === 'admin';
 
   return (
     <AuthContext.Provider value={{
       user,
+      profile,
       isAuthenticated: !!user,
+      isAdmin,
       isLoading,
       signIn,
       signUp,

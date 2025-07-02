@@ -41,11 +41,7 @@ export const useSignUp = (onSuccess: () => void) => {
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(email.trim(), password, {
-        display_name: displayName.trim(),
-        phone: phone?.trim() || null,
-        role: 'customer'
-      });
+      const { error } = await signUp(email.trim(), password, displayName.trim());
       
       if (!error) {
         console.log('Account created successfully');
