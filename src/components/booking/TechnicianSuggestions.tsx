@@ -19,7 +19,7 @@ interface TechnicianSuggestionsProps {
   onSelectTechnician: (technician: EnhancedTechnician) => void;
 }
 
-// Dummy shops data
+// Dummy shops data - expanded for all areas
 const dummyShops = [
   {
     id: "shop1",
@@ -62,10 +62,80 @@ const dummyShops = [
     total_repairs: 180,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
+  },
+  {
+    id: "shop4",
+    name: "Mobile Care Hub",
+    owner_name: "Suresh Patel",
+    phone: "+91-9876543220",
+    email: "mobilecare.kothrud@gmail.com",
+    address: "Shop 8, Kothrud Main Road",
+    area: "Kothrud",
+    is_active: true,
+    rating: 4.3,
+    total_repairs: 120,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "shop5",
+    name: "Gadget Fix Center",
+    owner_name: "Priya Reddy",
+    phone: "+91-9876543225",
+    email: "gadgetfix.baner@gmail.com",
+    address: "Shop 12, Baner Main Street",
+    area: "Baner",
+    is_active: true,
+    rating: 4.4,
+    total_repairs: 95,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "shop6",
+    name: "Smart Repair Solutions",
+    owner_name: "Neha Joshi",
+    phone: "+91-9876543230",
+    email: "smart.hinjewadi@gmail.com",
+    address: "Shop 25, Hinjewadi Phase 1",
+    area: "Hinjewadi",
+    is_active: true,
+    rating: 4.2,
+    total_repairs: 85,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "shop7",
+    name: "ProFix Mobile Care",
+    owner_name: "Deepak Gupta",
+    phone: "+91-9876543235",
+    email: "profix.shivajinagar@gmail.com",
+    address: "Shop 9, Shivajinagar Main Road",
+    area: "Shivajinagar",
+    is_active: true,
+    rating: 4.1,
+    total_repairs: 75,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "shop8",
+    name: "TechCare Solutions",
+    owner_name: "Sneha Pawar",
+    phone: "+91-9876543240",
+    email: "techcare.aundh@gmail.com",
+    address: "Shop 18, Aundh IT Park",
+    area: "Aundh",
+    is_active: true,
+    rating: 4.5,
+    total_repairs: 110,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   }
 ];
 
-// Dummy technicians data
+// Dummy technicians data - expanded for all areas
 const dummyTechnicians = [
   {
     id: "tech1",
@@ -143,6 +213,106 @@ const dummyTechnicians = [
     availability_status: "available" as const,
     hourly_rate: 450,
     area: "FC Road",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "tech5",
+    user_id: "user5",
+    name: "Rohit Kumar",
+    phone: "+91-9876543308",
+    email: "rohit.kumar@mobilecare.com",
+    shop_id: "shop4",
+    shop: dummyShops[3],
+    specialization: ["Battery Replacement", "Charging Port", "Water Damage"],
+    expertise_level: "intermediate" as const,
+    years_experience: 3,
+    rating: 4.2,
+    completed_repairs: 65,
+    availability_status: "available" as const,
+    hourly_rate: 250,
+    area: "Kothrud",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "tech6",
+    user_id: "user6",
+    name: "Anil Sharma",
+    phone: "+91-9876543310",
+    email: "anil.sharma@gadgetfix.com",
+    shop_id: "shop5",
+    shop: dummyShops[4],
+    specialization: ["Screen Replacement", "Camera Repair", "Software Issues"],
+    expertise_level: "expert" as const,
+    years_experience: 6,
+    rating: 4.5,
+    completed_repairs: 95,
+    availability_status: "available" as const,
+    hourly_rate: 320,
+    area: "Baner",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "tech7",
+    user_id: "user7",
+    name: "Kiran Patil",
+    phone: "+91-9876543312",
+    email: "kiran.patil@smartrepair.com",
+    shop_id: "shop6",
+    shop: dummyShops[5],
+    specialization: ["Motherboard Repair", "Water Damage", "Data Recovery"],
+    expertise_level: "master" as const,
+    years_experience: 9,
+    rating: 4.7,
+    completed_repairs: 140,
+    availability_status: "available" as const,
+    hourly_rate: 480,
+    area: "Hinjewadi",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "tech8",
+    user_id: "user8",
+    name: "Ravi Joshi",
+    phone: "+91-9876543314",
+    email: "ravi.joshi@profix.com",
+    shop_id: "shop7",
+    shop: dummyShops[6],
+    specialization: ["Screen Replacement", "Battery Replacement", "Speaker Repair"],
+    expertise_level: "intermediate" as const,
+    years_experience: 4,
+    rating: 4.1,
+    completed_repairs: 55,
+    availability_status: "available" as const,
+    hourly_rate: 280,
+    area: "Shivajinagar",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "tech9",
+    user_id: "user9",
+    name: "Kavita Desai",
+    phone: "+91-9876543316",
+    email: "kavita.desai@techcare.com",
+    shop_id: "shop8",
+    shop: dummyShops[7],
+    specialization: ["Water Damage", "Charging Port", "Software Issues"],
+    expertise_level: "expert" as const,
+    years_experience: 7,
+    rating: 4.6,
+    completed_repairs: 125,
+    availability_status: "available" as const,
+    hourly_rate: 380,
+    area: "Aundh",
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
