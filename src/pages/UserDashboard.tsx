@@ -21,18 +21,9 @@ import { StatsCards } from '@/components/customer/StatsCards';
 import { RepairCard } from '@/components/customer/RepairCard';
 import { RepairDetailsModal } from '@/components/customer/RepairDetailsModal';
 import { RealtimeNotifications } from '@/components/realtime/RealtimeNotifications';
-import { Link, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import AdminDashboard from './AdminDashboard';
+import { Link } from 'react-router-dom';
 
 const UserDashboard = () => {
-  const { isAdmin } = useAuth();
-  
-  // Redirect admin users to admin dashboard
-  if (isAdmin) {
-    return <AdminDashboard />;
-  }
-
   const { repairs, stats, loading, error, refetch } = useCustomerData();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
