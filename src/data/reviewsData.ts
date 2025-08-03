@@ -114,47 +114,47 @@ export const reviews: Review[] = [
 export const technicians: Technician[] = [
   {
     id: "1",
-    name: "Rajesh Kumar",
-    photo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face",
-    specialization: ["iPhone Repairs", "Screen Replacement", "Water Damage"],
+    name: "Priyanka Das",
+    photo: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&crop=face",
+    specialization: ["Screen Replacement", "Data Recovery", "Software Issues"],
     experienceYears: 8,
-    certifications: ["Apple Certified Technician", "IPC Electronics Repair"],
+    certifications: ["Apple Certified Technician", "Data Recovery Specialist"],
     rating: 4.9,
-    totalRepairs: 2500,
-    bio: "Specialized in Apple device repairs with over 8 years of experience. Expert in complex motherboard repairs and data recovery."
+    totalRepairs: 2850,
+    bio: "Master technician specializing in complex repairs and data recovery. Expert in iPhone diagnostics and component-level repairs."
   },
   {
     id: "2",
-    name: "Priya Mehta",
-    photo: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&crop=face",
-    specialization: ["Samsung Repairs", "Battery Replacement", "Software Issues"],
-    experienceYears: 6,
-    certifications: ["Samsung Certified Repair", "Android Specialist"],
+    name: "Pooja Gupta",
+    photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face",
+    specialization: ["Water Damage", "Motherboard Repair", "Software Issues"],
+    experienceYears: 7,
+    certifications: ["Samsung Certified Repair", "Motherboard Specialist"],
     rating: 4.8,
-    totalRepairs: 1800,
-    bio: "Android and Samsung specialist with expertise in software troubleshooting and hardware repairs. Known for quick diagnosis."
+    totalRepairs: 2120,
+    bio: "Water damage and motherboard repair expert. Specialized in retrieving devices from severe liquid damage with advanced cleaning techniques."
   },
   {
     id: "3",
-    name: "Amit Sharma",
-    photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face",
-    specialization: ["OnePlus Repairs", "Charging Port", "Camera Repairs"],
-    experienceYears: 5,
-    certifications: ["OnePlus Certified", "Camera Module Specialist"],
+    name: "Kiran Patil",
+    photo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face",
+    specialization: ["Motherboard Repair", "Water Damage", "Data Recovery"],
+    experienceYears: 9,
+    certifications: ["Master Technician", "Component Level Repair"],
     rating: 4.7,
-    totalRepairs: 1200,
-    bio: "OnePlus and camera repair specialist. Expert in precision work and component-level repairs for modern smartphones."
+    totalRepairs: 3140,
+    bio: "Master technician with 9+ years of experience in complex motherboard repairs and micro-soldering. Expert in component-level diagnostics."
   },
   {
     id: "4",
-    name: "Sneha Patel",
-    photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face",
-    specialization: ["Data Recovery", "Software Repair", "Xiaomi Repairs"],
+    name: "Kavita Desai",
+    photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face",
+    specialization: ["Water Damage", "Charging Port", "Software Issues"],
     experienceYears: 7,
-    certifications: ["Data Recovery Specialist", "Xiaomi Certified"],
-    rating: 4.9,
-    totalRepairs: 2100,
-    bio: "Data recovery and software repair expert. Specialized in retrieving data from severely damaged devices and complex software issues."
+    certifications: ["Software Specialist", "Hardware Diagnostic Expert"],
+    rating: 4.6,
+    totalRepairs: 2250,
+    bio: "Expert in water damage restoration and charging port repairs. Known for quick diagnostics and efficient repair solutions."
   }
 ];
 
