@@ -15,6 +15,7 @@ import CartPage from "./pages/CartPage";
 import ContactPage from "./pages/ContactPage";
 import AdminPanel from "./pages/AdminPanel";
 import UserDashboard from "./pages/UserDashboard";
+import ShopDirectory from "./pages/ShopDirectory";
 import LoginPage from "@/components/auth/LoginPage";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/services" element={<ServicesPage />} />
               <Route path="/reviews" element={<ReviewsPage />} />
               <Route path="/book-repair" element={<BookRepairPage />} />
+              <Route path="/shops" element={<ShopDirectory />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/login" element={<LoginPage />} />

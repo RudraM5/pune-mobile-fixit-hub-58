@@ -15,11 +15,18 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, profile, isAuthenticated, isAdmin, signOut } = useAuth();
 
-  const navItems = [
+  const navItems = isAdmin ? [
+    { href: "/", label: "Home" },
+    { href: "/services", label: "Services" },
+    { href: "/reviews", label: "Reviews" },
+    { href: "/admin", label: "Admin Panel" },
+    { href: "/contact", label: "Contact" },
+  ] : [
     { href: "/", label: "Home" },
     { href: "/services", label: "Services" },
     { href: "/reviews", label: "Reviews" },
     { href: "/book-repair", label: "Book Repair" },
+    { href: "/shops", label: "Find Shops" },
     { href: "/dashboard", label: "My Repairs" },
     { href: "/contact", label: "Contact" },
   ];
@@ -57,17 +64,19 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4 animate-slide-in-right">
             <ThemeToggle />
-            <Link to="/cart" className="relative">
-              <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-md">
-                <ShoppingCart className="h-4 w-4 mr-2 transition-transform duration-300 hover:rotate-12" />
-                Cart
-                {cartItems > 0 && (
-                  <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs animate-scale-in">
-                    {cartItems}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
+            {!isAdmin && (
+              <Link to="/cart" className="relative">
+                <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-md">
+                  <ShoppingCart className="h-4 w-4 mr-2 transition-transform duration-300 hover:rotate-12" />
+                  Cart
+                  {cartItems > 0 && (
+                    <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs animate-scale-in">
+                      {cartItems}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
+            )}
             
             {isAuthenticated ? (
               <>
@@ -122,14 +131,16 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
                   >
                     {item.label}
                   </Link>
-                ))}
+                 ))}
                 <div className="pt-4 space-y-3">
-                  <Link to="/cart" onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" className="w-full justify-start">
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Cart ({cartItems})
-                    </Button>
-                  </Link>
+                  {!isAdmin && (
+                    <Link to="/cart" onClick={() => setIsOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start">
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Cart ({cartItems})
+                      </Button>
+                    </Link>
+                  )}
                   
                   {isAuthenticated ? (
                     <>

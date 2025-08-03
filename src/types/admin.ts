@@ -21,6 +21,14 @@ export interface Analytics {
   avgRepairTime: string;
   customerSatisfaction: number;
   topTechnician: string;
+  successRate: number;
+  firstCallResolution: number;
+  averageResponseTime: string;
+  peakHours: string;
+  topPerformingArea: string;
+  qualityScore: number;
+  repeatCustomerRate: number;
+  monthlyGrowth: number;
 }
 
 export interface ServicePerformance {

@@ -47,48 +47,8 @@ export interface CustomerRepairRequest {
   notes?: string;
 }
 
-// Mock data for development
-const mockRepairs: CustomerRepairRequest[] = [
-  {
-    id: '1',
-    device: {
-      brand: 'iPhone',
-      model: '13 Pro',
-      category: 'smartphone'
-    },
-    description: 'Screen replacement needed',
-    status: 'in-progress',
-    priority: 'high',
-    created_at: '2024-12-15T10:00:00Z',
-    estimated_completion: '2024-12-20T16:00:00Z',
-    technician: {
-      name: 'Raj Patel',
-      phone: '+91 9876543210'
-    },
-    services: [
-      {
-        name: 'Screen Replacement',
-        price: 8500,
-        quantity: 1
-      }
-    ],
-    total_amount: 8500,
-    status_updates: [
-      {
-        id: '1',
-        new_status: 'pending',
-        message: 'Repair request received',
-        created_at: '2024-12-15T10:00:00Z'
-      },
-      {
-        id: '2',
-        old_status: 'pending',
-        new_status: 'in-progress',
-        message: 'Technician assigned and work started',
-        created_at: '2024-12-15T14:00:00Z'
-      }
-    ]
-  },
+// Mock data for development - different data for admin and customer
+const customerMockRepairs: CustomerRepairRequest[] = [
   {
     id: '2',
     device: {
@@ -137,11 +97,11 @@ const mockRepairs: CustomerRepairRequest[] = [
   }
 ];
 
-const mockStats: CustomerStats = {
-  totalRepairs: 5,
-  activeRepairs: 1,
-  completedRepairs: 4,
-  totalSpent: 25000
+const customerMockStats: CustomerStats = {
+  totalRepairs: 1,
+  activeRepairs: 0,
+  completedRepairs: 1,
+  totalSpent: 3500
 };
 
 export const useCustomerData = () => {
@@ -163,8 +123,9 @@ export const useCustomerData = () => {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        setRepairs(mockRepairs);
-        setStats(mockStats);
+        // Only return customer repairs (no iPhone 13 Pro for regular users)
+        setRepairs(customerMockRepairs);
+        setStats(customerMockStats);
         setError(null);
       } catch (err) {
         setError('Failed to load customer data');
@@ -181,8 +142,8 @@ export const useCustomerData = () => {
     setLoading(true);
     // Simulate refetch
     setTimeout(() => {
-      setRepairs(mockRepairs);
-      setStats(mockStats);
+      setRepairs(customerMockRepairs);
+      setStats(customerMockStats);
       setLoading(false);
     }, 500);
   };

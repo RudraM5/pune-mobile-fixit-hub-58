@@ -55,14 +55,22 @@ export const mockRepairRequests: RepairRequest[] = [
 ];
 
 export const mockAnalytics: Analytics = {
-  totalRequests: 156,
-  pendingRequests: 12,
-  inProgressRequests: 8,
-  completedToday: 15,
-  revenue: 45000,
-  avgRepairTime: "2.5 hours",
-  customerSatisfaction: 4.8,
-  topTechnician: "Amit Kumar"
+  totalRequests: 1247,
+  pendingRequests: 23,
+  inProgressRequests: 31,
+  completedToday: 47,
+  revenue: 245000,
+  avgRepairTime: "1.8 hours",
+  customerSatisfaction: 4.6,
+  topTechnician: "Priyanka Das",
+  successRate: 98.5,
+  firstCallResolution: 87,
+  averageResponseTime: "12 minutes",
+  peakHours: "2 PM - 6 PM",
+  topPerformingArea: "FC Road",
+  qualityScore: 94.2,
+  repeatCustomerRate: 72,
+  monthlyGrowth: 18.5
 };
 
 export const mockServicePerformance: ServicePerformance[] = [
