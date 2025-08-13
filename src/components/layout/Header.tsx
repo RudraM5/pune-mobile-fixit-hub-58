@@ -106,7 +106,7 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
               </Link>
             )}
             
-            <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
+            <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer">
               <Button size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
                 WhatsApp Us
               </Button>
@@ -177,7 +177,7 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
                     </Link>
                   )}
                   
-                  <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
+                  <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer">
                     <Button className="w-full">
                       WhatsApp Us
                     </Button>
