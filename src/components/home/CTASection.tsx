@@ -17,8 +17,13 @@ export function CTASection() {
               Book Now
             </Button>
           </Link>
-          <Button size="lg" variant="outline" className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-            Call +91 98765 43210
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="text-lg px-8 border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+            onClick={() => window.open('https://wa.me/919325673075', '_blank')}
+          >
+            WhatsApp +91 93256 73075
           </Button>
         </div>
       </div>
