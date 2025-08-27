@@ -92,23 +92,12 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Interactive Tools & Live Activity */}
+      {/* Live Activity & Social Proof */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-display bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Interactive Repair Experience
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Get instant quotes, track live repairs, and chat with experts
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <PricingCalculator />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <LiveRepairCounter />
-            <div className="lg:col-span-1">
-              <SocialProofSection />
-            </div>
+            <SocialProofSection />
           </div>
         </div>
       </section>

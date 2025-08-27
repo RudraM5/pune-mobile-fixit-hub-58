@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Search, Star, Phone, Clock, User } from "lucide-react";
 import { Shop, EnhancedTechnician } from "@/types/shop";
 
-// Dummy shops data with technicians
+// Expanded shops data with technicians across all Pune areas
 const dummyShopsWithTechnicians = [
+  // FC Road
   {
     id: "shop1",
     name: "TechFix Mobile Center",
@@ -51,6 +52,36 @@ const dummyShopsWithTechnicians = [
   },
   {
     id: "shop2",
+    name: "Mobile Masters FC",
+    owner_name: "Suresh Patil",
+    phone: "+91-9876543216",
+    email: "mobilemasters.fc@gmail.com",
+    address: "Shop 42, FC Road, Near Deccan Gymkhana",
+    area: "FC Road",
+    is_active: true,
+    rating: 4.3,
+    total_repairs: 120,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech5",
+        name: "Rahul Joshi",
+        phone: "+91-9876543307",
+        email: "rahul.joshi@mobilemasters.com",
+        specialization: ["Water Damage", "Charging Port", "Speaker Repair"],
+        expertise_level: "intermediate" as const,
+        years_experience: 3,
+        rating: 4.2,
+        completed_repairs: 65,
+        availability_status: "available" as const
+      }
+    ]
+  },
+
+  // Viman Nagar
+  {
+    id: "shop3",
     name: "QuickFix Solutions",
     owner_name: "Amit Kumar",
     phone: "+91-9876543212",
@@ -78,7 +109,37 @@ const dummyShopsWithTechnicians = [
     ]
   },
   {
-    id: "shop3",
+    id: "shop4",
+    name: "Phoenix Mobile Repair",
+    owner_name: "Neha Desai",
+    phone: "+91-9876543217",
+    email: "phoenix.viman@gmail.com",
+    address: "Shop 8, Nagar Road, Viman Nagar",
+    area: "Viman Nagar",
+    is_active: true,
+    rating: 4.4,
+    total_repairs: 95,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech6",
+        name: "Kiran Patel",
+        phone: "+91-9876543308",
+        email: "kiran.patel@phoenix.com",
+        specialization: ["Screen Replacement", "Battery Replacement"],
+        expertise_level: "expert" as const,
+        years_experience: 4,
+        rating: 4.3,
+        completed_repairs: 78,
+        availability_status: "available" as const
+      }
+    ]
+  },
+
+  // Wakad
+  {
+    id: "shop5",
     name: "Expert Mobile Solutions",
     owner_name: "Kavita Singh",
     phone: "+91-9876543215",
@@ -104,6 +165,240 @@ const dummyShopsWithTechnicians = [
         availability_status: "available" as const
       }
     ]
+  },
+  {
+    id: "shop6",
+    name: "Wakad Mobile Hub",
+    owner_name: "Deepak Sharma",
+    phone: "+91-9876543218",
+    email: "mobilehub.wakad@gmail.com",
+    address: "Shop 35, Wakad Main Road",
+    area: "Wakad",
+    is_active: true,
+    rating: 4.2,
+    total_repairs: 110,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech7",
+        name: "Sneha Kulkarni",
+        phone: "+91-9876543309",
+        email: "sneha.kulkarni@mobilehub.com",
+        specialization: ["Camera Repair", "Software Issues", "Data Recovery"],
+        expertise_level: "intermediate" as const,
+        years_experience: 3,
+        rating: 4.1,
+        completed_repairs: 55,
+        availability_status: "available" as const
+      }
+    ]
+  },
+
+  // Kothrud
+  {
+    id: "shop7",
+    name: "TechCare Kothrud",
+    owner_name: "Manish Agarwal",
+    phone: "+91-9876543219",
+    email: "techcare.kothrud@gmail.com",
+    address: "Shop 12, Karve Road, Kothrud",
+    area: "Kothrud",
+    is_active: true,
+    rating: 4.5,
+    total_repairs: 140,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech8",
+        name: "Aditya Rao",
+        phone: "+91-9876543310",
+        email: "aditya.rao@techcare.com",
+        specialization: ["Screen Replacement", "Water Damage", "Motherboard Repair"],
+        expertise_level: "expert" as const,
+        years_experience: 6,
+        rating: 4.6,
+        completed_repairs: 105,
+        availability_status: "available" as const
+      }
+    ]
+  },
+  {
+    id: "shop8",
+    name: "Smart Repair Center",
+    owner_name: "Ravi Gupta",
+    phone: "+91-9876543220",
+    email: "smartrepair.kothrud@gmail.com",
+    address: "Shop 25, Paud Road, Kothrud",
+    area: "Kothrud",
+    is_active: true,
+    rating: 4.3,
+    total_repairs: 85,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech9",
+        name: "Meera Shah",
+        phone: "+91-9876543311",
+        email: "meera.shah@smartrepair.com",
+        specialization: ["Battery Replacement", "Charging Port", "Speaker Repair"],
+        expertise_level: "intermediate" as const,
+        years_experience: 3,
+        rating: 4.2,
+        completed_repairs: 48,
+        availability_status: "available" as const
+      }
+    ]
+  },
+
+  // Pune Center
+  {
+    id: "shop9",
+    name: "Central Mobile Clinic",
+    owner_name: "Ashok Deshmukh",
+    phone: "+91-9876543221",
+    email: "central.clinic@gmail.com",
+    address: "Shop 5, Laxmi Road, Pune Center",
+    area: "Pune Center",
+    is_active: true,
+    rating: 4.4,
+    total_repairs: 160,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech10",
+        name: "Sachin Bhosale",
+        phone: "+91-9876543312",
+        email: "sachin.bhosale@central.com",
+        specialization: ["Screen Replacement", "Camera Repair", "Software Issues"],
+        expertise_level: "expert" as const,
+        years_experience: 5,
+        rating: 4.5,
+        completed_repairs: 92,
+        availability_status: "available" as const
+      }
+    ]
+  },
+
+  // Baner
+  {
+    id: "shop10",
+    name: "Baner Tech Solutions",
+    owner_name: "Priya Jain",
+    phone: "+91-9876543222",
+    email: "banertech@gmail.com",
+    address: "Shop 16, Baner Road, Near Balewadi",
+    area: "Baner",
+    is_active: true,
+    rating: 4.6,
+    total_repairs: 175,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech11",
+        name: "Rohit Pawar",
+        phone: "+91-9876543313",
+        email: "rohit.pawar@banertech.com",
+        specialization: ["Water Damage", "Motherboard Repair", "Data Recovery"],
+        expertise_level: "master" as const,
+        years_experience: 8,
+        rating: 4.7,
+        completed_repairs: 125,
+        availability_status: "available" as const
+      }
+    ]
+  },
+  {
+    id: "shop11",
+    name: "Mobile Pro Baner",
+    owner_name: "Anjali Mehta",
+    phone: "+91-9876543223",
+    email: "mobilepro.baner@gmail.com",
+    address: "Shop 28, Sus Road, Baner",
+    area: "Baner",
+    is_active: true,
+    rating: 4.2,
+    total_repairs: 90,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech12",
+        name: "Amit Soni",
+        phone: "+91-9876543314",
+        email: "amit.soni@mobilepro.com",
+        specialization: ["Battery Replacement", "Charging Port", "Screen Replacement"],
+        expertise_level: "intermediate" as const,
+        years_experience: 4,
+        rating: 4.0,
+        completed_repairs: 52,
+        availability_status: "available" as const
+      }
+    ]
+  },
+
+  // Hinjewadi
+  {
+    id: "shop12",
+    name: "IT Park Mobile Care",
+    owner_name: "Sandeep Kumar",
+    phone: "+91-9876543224",
+    email: "itpark.mobile@gmail.com",
+    address: "Shop 7, Phase 1, Hinjewadi IT Park",
+    area: "Hinjewadi",
+    is_active: true,
+    rating: 4.5,
+    total_repairs: 155,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech13",
+        name: "Tanvi Reddy",
+        phone: "+91-9876543315",
+        email: "tanvi.reddy@itpark.com",
+        specialization: ["Software Issues", "Data Recovery", "Screen Replacement"],
+        expertise_level: "expert" as const,
+        years_experience: 5,
+        rating: 4.4,
+        completed_repairs: 88,
+        availability_status: "available" as const
+      }
+    ]
+  },
+
+  // Aundh
+  {
+    id: "shop13",
+    name: "Aundh Mobile Express",
+    owner_name: "Vijay Patil",
+    phone: "+91-9876543225",
+    email: "aundh.express@gmail.com",
+    address: "Shop 19, Aundh Main Road",
+    area: "Aundh",
+    is_active: true,
+    rating: 4.3,
+    total_repairs: 105,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    technicians: [
+      {
+        id: "tech14",
+        name: "Pooja Marathe",
+        phone: "+91-9876543316",
+        email: "pooja.marathe@aundh.com",
+        specialization: ["Camera Repair", "Water Damage", "Battery Replacement"],
+        expertise_level: "intermediate" as const,
+        years_experience: 3,
+        rating: 4.2,
+        completed_repairs: 58,
+        availability_status: "available" as const
+      }
+    ]
   }
 ];
 
@@ -114,10 +409,9 @@ const puneAreas = [
 
 interface AreaSearchProps {
   onShopSelect?: (shop: Shop & { technicians: any[] }) => void;
-  onTechnicianSelect?: (technician: EnhancedTechnician, shop: Shop) => void;
 }
 
-const AreaSearch = ({ onShopSelect, onTechnicianSelect }: AreaSearchProps) => {
+const AreaSearch = ({ onShopSelect }: AreaSearchProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
   const [filteredShops, setFilteredShops] = useState(dummyShopsWithTechnicians);
@@ -257,20 +551,23 @@ const AreaSearch = ({ onShopSelect, onTechnicianSelect }: AreaSearchProps) => {
                           ))}
                         </div>
                         <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            onClick={() => onTechnicianSelect?.(technician as any, shop)}
-                          >
-                            Select Technician
-                          </Button>
                           <Button size="sm" variant="outline">
                             <Phone className="w-3 h-3 mr-1" />
-                            Call
+                            Call Technician
                           </Button>
                         </div>
                       </div>
                     ))}
                   </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    onClick={() => onShopSelect?.(shop)}
+                    className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90"
+                  >
+                    Select This Shop
+                  </Button>
                 </div>
               </div>
             </CardContent>

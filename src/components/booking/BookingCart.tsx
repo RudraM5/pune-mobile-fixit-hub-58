@@ -12,7 +12,7 @@ interface BookingCartProps {
   totalItems: number;
   totalPrice: number;
   selectedDevice: MobileDevice | null;
-  selectedTechnician?: EnhancedTechnician | null;
+  selectedShop?: any;
   onRemoveFromCart: (serviceId: string) => void;
   onBooking: () => void;
   isSubmitting: boolean;
@@ -23,7 +23,7 @@ const BookingCart = ({
   totalItems, 
   totalPrice, 
   selectedDevice,
-  selectedTechnician,
+  selectedShop,
   onRemoveFromCart, 
   onBooking,
   isSubmitting 
@@ -51,23 +51,23 @@ const BookingCart = ({
           </div>
         )}
 
-        {/* Selected Technician */}
-        {selectedTechnician && (
+        {/* Selected Shop */}
+        {selectedShop && (
           <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-            <h4 className="font-medium text-sm mb-2 text-primary">Selected Technician</h4>
+            <h4 className="font-medium text-sm mb-2 text-primary">Selected Shop</h4>
             <div className="space-y-1">
-              <p className="font-medium text-sm">{selectedTechnician.name}</p>
+              <p className="font-medium text-sm">{selectedShop.name}</p>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                <span>{selectedTechnician.rating}</span>
+                <span>{selectedShop.rating}</span>
                 <span>•</span>
-                <span>{selectedTechnician.expertise_level}</span>
+                <span>{selectedShop.total_repairs} repairs</span>
               </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="w-3 h-3" />
-                <span>{selectedTechnician.shop?.name}</span>
+                <span>{selectedShop.area}</span>
               </div>
-              <p className="text-xs text-muted-foreground">{selectedTechnician.area}</p>
+              <p className="text-xs text-muted-foreground">{selectedShop.address}</p>
             </div>
           </div>
         )}

@@ -7,7 +7,6 @@ import SelectedDevice from "@/components/booking/SelectedDevice";
 import ServicesSelector from "@/components/booking/ServicesSelector";
 import CustomerDetails from "@/components/booking/CustomerDetails";
 import BookingCart from "@/components/booking/BookingCart";
-import TechnicianSuggestions from "@/components/booking/TechnicianSuggestions";
 import AreaSearch from "@/components/booking/AreaSearch";
 import { useCart } from "@/contexts/CartContext";
 import { useCustomerInfo } from "@/hooks/useCustomerInfo";
@@ -19,8 +18,7 @@ const BookRepairPage = () => {
   const { user, isAuthenticated } = useAuth();
   const [selectedDevice, setSelectedDevice] = useState<MobileDevice | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-  const [selectedTechnician, setSelectedTechnician] = useState<EnhancedTechnician | null>(null);
-  const [customerArea, setCustomerArea] = useState("Pune Center");
+  const [selectedShop, setSelectedShop] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("device");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -63,10 +61,10 @@ const BookRepairPage = () => {
     setSelectedServices(prev => prev.filter(s => s.id !== serviceId));
   };
 
-  const handleTechnicianSelect = (technician: EnhancedTechnician) => {
-    setSelectedTechnician(technician);
+  const handleShopSelect = (shop: any) => {
+    setSelectedShop(shop);
     setActiveTab("details");
-    console.log(`${technician.name} from ${technician.shop?.name} selected`);
+    console.log(`Shop ${shop.name} selected`);
   };
 
   const handleBooking = async () => {
@@ -75,8 +73,8 @@ const BookRepairPage = () => {
       return;
     }
 
-    if (!selectedTechnician) {
-      console.log("Please select a technician to proceed");
+    if (!selectedShop) {
+      console.log("Please select a shop to proceed");
       return;
     }
 
@@ -95,12 +93,12 @@ const BookRepairPage = () => {
       // Simulate booking creation
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      console.log(`Booking confirmed! Request #${bookingId} assigned to ${selectedTechnician.name}`);
+      console.log(`Booking confirmed! Request #${bookingId} for ${selectedShop.name}`);
 
       // Reset form
       setSelectedDevice(null);
       setSelectedServices([]);
-      setSelectedTechnician(null);
+      setSelectedShop(null);
       clearCart();
       resetCustomerInfo();
       setActiveTab("device");
@@ -128,12 +126,11 @@ const BookRepairPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="device">1. Device</TabsTrigger>
                 <TabsTrigger value="services" disabled={!selectedDevice}>2. Services</TabsTrigger>
-                <TabsTrigger value="area" disabled={cart.length === 0}>3. Search Area</TabsTrigger>
-                <TabsTrigger value="technician" disabled={cart.length === 0}>4. Technician</TabsTrigger>
-                <TabsTrigger value="details" disabled={!selectedTechnician}>5. Details</TabsTrigger>
+                <TabsTrigger value="area" disabled={cart.length === 0}>3. Select Shop</TabsTrigger>
+                <TabsTrigger value="details" disabled={!selectedShop}>4. Details</TabsTrigger>
               </TabsList>
 
               <TabsContent value="device" className="space-y-6">
@@ -156,28 +153,7 @@ const BookRepairPage = () => {
 
               <TabsContent value="area" className="space-y-6">
                 <AreaSearch 
-                  onTechnicianSelect={(technician, shop) => {
-                    const enhancedTechnician = {
-                      ...technician,
-                      shop_id: shop.id,
-                      shop: shop,
-                      area: shop.area,
-                      hourly_rate: 300,
-                      is_active: true,
-                      user_id: technician.id,
-                      created_at: new Date().toISOString(),
-                      updated_at: new Date().toISOString()
-                    };
-                    handleTechnicianSelect(enhancedTechnician);
-                  }}
-                />
-              </TabsContent>
-
-              <TabsContent value="technician" className="space-y-6">
-                <TechnicianSuggestions
-                  selectedServices={selectedServices}
-                  customerArea={customerArea}
-                  onSelectTechnician={handleTechnicianSelect}
+                  onShopSelect={handleShopSelect}
                 />
               </TabsContent>
 
@@ -197,7 +173,7 @@ const BookRepairPage = () => {
               totalItems={getTotalItems()}
               totalPrice={getTotalPrice()}
               selectedDevice={selectedDevice}
-              selectedTechnician={selectedTechnician}
+              selectedShop={selectedShop}
               onRemoveFromCart={handleServiceRemove}
               onBooking={handleBooking}
               isSubmitting={isSubmitting}
