@@ -27,7 +27,7 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-muted-foreground">
-              <li>+91 98765 43210</li>
+              <li>+91 93256 73075</li>
               <li>info@mobilerepairwala.com</li>
               <li>Pune, Maharashtra</li>
               <li>24/7 Support</li>
@@ -39,7 +39,7 @@ export function Footer() {
               <li><Link to="/dashboard">Track Repair</Link></li>
               <li><Link to="/services">All Services</Link></li>
               <li><Link to="/contact">Contact Us</Link></li>
-              <li><a href="https://wa.me/919876543210">WhatsApp</a></li>
+              <li><a href="https://wa.me/919325673075">WhatsApp</a></li>
             </ul>
           </div>
         </div>

@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import ShopDetailsModal from "./ShopDetailsModal";
+import { toast } from "sonner";
 import { 
   Store, 
   Plus, 
@@ -84,14 +86,57 @@ const mockShops = [
 ];
 
 const ShopsManagementTab = () => {
-  const [shops] = useState(mockShops);
+  const [shops, setShops] = useState(mockShops);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedShop, setSelectedShop] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'view' | 'edit' | 'add'>('view');
 
   const filteredShops = shops.filter(shop =>
     shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     shop.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
     shop.owner_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleViewShop = (shop: any) => {
+    setSelectedShop(shop);
+    setModalMode('view');
+    setIsModalOpen(true);
+  };
+
+  const handleEditShop = (shop: any) => {
+    setSelectedShop(shop);
+    setModalMode('edit');
+    setIsModalOpen(true);
+  };
+
+  const handleAddShop = () => {
+    setSelectedShop(null);
+    setModalMode('add');
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteShop = (shopId: string) => {
+    setShops(prev => prev.filter(shop => shop.id !== shopId));
+    toast.success("Shop deleted successfully!");
+  };
+
+  const handleSaveShop = (shopData: any) => {
+    if (modalMode === 'add') {
+      const newShop = {
+        ...shopData,
+        id: `shop${shops.length + 1}`,
+        rating: 0,
+        total_repairs: 0,
+        technicians_count: 0
+      };
+      setShops(prev => [...prev, newShop]);
+    } else {
+      setShops(prev => prev.map(shop => 
+        shop.id === selectedShop.id ? { ...shop, ...shopData } : shop
+      ));
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -101,7 +146,7 @@ const ShopsManagementTab = () => {
           <h2 className="text-2xl font-bold">Shops Management</h2>
           <p className="text-muted-foreground">Manage affiliated repair shops and their details</p>
         </div>
-        <Button>
+        <Button onClick={handleAddShop}>
           <Plus className="h-4 w-4 mr-2" />
           Add New Shop
         </Button>
@@ -206,15 +251,15 @@ const ShopsManagementTab = () => {
               </div>
               
               <div className="flex gap-2 pt-2">
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => handleViewShop(shop)}>
                   <Eye className="h-4 w-4 mr-1" />
                   View
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => handleEditShop(shop)}>
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
-                <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteShop(shop.id)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -222,6 +267,14 @@ const ShopsManagementTab = () => {
           </Card>
         ))}
       </div>
+
+      <ShopDetailsModal
+        shop={selectedShop}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveShop}
+        mode={modalMode}
+      />
     </div>
   );
 };

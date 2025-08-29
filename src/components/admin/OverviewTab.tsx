@@ -47,20 +47,7 @@ const OverviewTab = () => {
       topTechnician: 'Raj Kumar'
     };
 
-    const mockRequests: RepairRequest[] = [
-      {
-        id: 'REQ001',
-        customerName: 'John Doe',
-        phone: '+91-9876543210',
-        device: 'iPhone 14',
-        services: ['Screen Replacement'],
-        status: 'pending',
-        priority: 'high',
-        createdAt: new Date().toISOString(),
-        estimatedCompletion: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-        totalAmount: 2999
-      }
-    ];
+    const mockRequests: RepairRequest[] = [];
 
     setTimeout(() => {
       setAnalytics(mockAnalytics);

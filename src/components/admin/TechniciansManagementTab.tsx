@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import TechnicianDetailsModal from "./TechnicianDetailsModal";
+import { toast } from "sonner";
 import { 
   User, 
   Plus, 
@@ -100,8 +102,11 @@ const mockTechnicians = [
 ];
 
 const TechniciansManagementTab = () => {
-  const [technicians] = useState(mockTechnicians);
+  const [technicians, setTechnicians] = useState(mockTechnicians);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTechnician, setSelectedTechnician] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'view' | 'edit' | 'add'>('view');
 
   const filteredTechnicians = technicians.filter(tech =>
     tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,6 +133,45 @@ const TechniciansManagementTab = () => {
     }
   };
 
+  const handleViewTechnician = (technician: any) => {
+    setSelectedTechnician(technician);
+    setModalMode('view');
+    setIsModalOpen(true);
+  };
+
+  const handleEditTechnician = (technician: any) => {
+    setSelectedTechnician(technician);
+    setModalMode('edit');
+    setIsModalOpen(true);
+  };
+
+  const handleAddTechnician = () => {
+    setSelectedTechnician(null);
+    setModalMode('add');
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteTechnician = (technicianId: string) => {
+    setTechnicians(prev => prev.filter(tech => tech.id !== technicianId));
+    toast.success("Technician deleted successfully!");
+  };
+
+  const handleSaveTechnician = (technicianData: any) => {
+    if (modalMode === 'add') {
+      const newTechnician = {
+        ...technicianData,
+        id: `tech${technicians.length + 1}`,
+        rating: 0,
+        completed_repairs: 0
+      };
+      setTechnicians(prev => [...prev, newTechnician]);
+    } else {
+      setTechnicians(prev => prev.map(tech => 
+        tech.id === selectedTechnician.id ? { ...tech, ...technicianData } : tech
+      ));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -136,7 +180,7 @@ const TechniciansManagementTab = () => {
           <h2 className="text-2xl font-bold">Technicians Management</h2>
           <p className="text-muted-foreground">Manage registered technicians and their profiles</p>
         </div>
-        <Button>
+        <Button onClick={handleAddTechnician}>
           <Plus className="h-4 w-4 mr-2" />
           Add New Technician
         </Button>
@@ -257,15 +301,15 @@ const TechniciansManagementTab = () => {
               </div>
               
               <div className="flex gap-2 pt-2">
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => handleViewTechnician(tech)}>
                   <Eye className="h-4 w-4 mr-1" />
                   View
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => handleEditTechnician(tech)}>
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
-                <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteTechnician(tech.id)}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -273,6 +317,14 @@ const TechniciansManagementTab = () => {
           </Card>
         ))}
       </div>
+
+      <TechnicianDetailsModal
+        technician={selectedTechnician}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveTechnician}
+        mode={modalMode}
+      />
     </div>
   );
 };

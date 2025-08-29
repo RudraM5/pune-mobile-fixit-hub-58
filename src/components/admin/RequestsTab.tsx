@@ -29,21 +29,7 @@ const RequestsTab = () => {
 
   useEffect(() => {
     // Mock data - replace with your database service
-    const mockRequests: RepairRequest[] = [
-      {
-        id: 'REQ001',
-        customerName: 'John Doe',
-        phone: '+91-9876543210',
-        device: 'iPhone 14',
-        services: ['Screen Replacement'],
-        status: 'pending',
-        priority: 'high',
-        createdAt: new Date().toISOString(),
-        estimatedCompletion: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-        totalAmount: 2999,
-        technician: 'Raj Kumar'
-      }
-    ];
+    const mockRequests: RepairRequest[] = [];
 
     setTimeout(() => {
       setRequests(mockRequests);
@@ -174,25 +160,33 @@ const RequestsTab = () => {
                   <TableCell>{getPriorityBadge(request.priority)}</TableCell>
                   <TableCell>₹{request.totalAmount.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Select
-                      value={request.status}
-                      onValueChange={(value) => updateRequestStatus(request.id, value)}
-                    >
-                      <SelectTrigger className="w-[130px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select
+                        value={request.status}
+                        onValueChange={(value) => updateRequestStatus(request.id, value)}
+                      >
+                        <SelectTrigger className="w-[130px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          
+          {filteredRequests.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No repair requests found</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -22,26 +22,31 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="requests">Repair Requests</TabsTrigger>
-            <TabsTrigger value="shops">Shops</TabsTrigger>
-            <TabsTrigger value="technicians">Technicians</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-7">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="requests">Repair Requests</TabsTrigger>
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="shops">Shops</TabsTrigger>
+          <TabsTrigger value="technicians">Technicians</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
             <OverviewTab />
           </TabsContent>
 
-          <TabsContent value="requests">
-            <RequestsTab />
-          </TabsContent>
-
-          <TabsContent value="shops">
-            <ShopsManagementTab />
-          </TabsContent>
+        <TabsContent value="requests">
+          <RequestsTab />
+        </TabsContent>
+        
+        <TabsContent value="bookings">
+          <BookingsManagementTab />
+        </TabsContent>
+        
+        <TabsContent value="shops">
+          <ShopsManagementTab />
+        </TabsContent>
 
           <TabsContent value="technicians">
             <TechniciansManagementTab />

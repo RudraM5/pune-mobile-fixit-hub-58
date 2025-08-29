@@ -108,7 +108,7 @@ const ContactPage = () => {
                   <Button className="flex-1">
                     Send Message
                   </Button>
-                  <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="flex-1">
+                  <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer" className="flex-1">
                     <Button variant="outline" className="w-full">
                       <MessageCircle className="h-4 w-4 mr-2" />
                       WhatsApp Instead
@@ -131,7 +131,7 @@ const ContactPage = () => {
                   <Phone className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-medium">Call Us</p>
-                    <p className="text-sm text-muted-foreground">+91 98765 43210</p>
+                    <p className="text-sm text-muted-foreground">+91 93256 73075</p>
                     <p className="text-xs text-green-600">Available 24/7</p>
                   </div>
                 </div>
@@ -155,7 +155,7 @@ const ContactPage = () => {
                 </div>
 
                 <div className="pt-4">
-                  <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
+                  <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer">
                     <Button className="w-full">
                       <MessageCircle className="h-4 w-4 mr-2" />
                       WhatsApp Now
@@ -259,7 +259,7 @@ const ContactPage = () => {
                   <Phone className="h-4 w-4 mr-2" />
                   Emergency Hotline
                 </Button>
-                <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="lg">
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Emergency WhatsApp
