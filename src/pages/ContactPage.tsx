@@ -1,12 +1,35 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Header from "@/components/layout/Header";
+import { useToast } from "@/hooks/use-toast";
 import { Phone, MapPin, Clock, MessageCircle, Mail, Star } from "lucide-react";
 
 const ContactPage = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Simulate form submission
+    setTimeout(() => {
+      toast({
+        title: "Message Sent Successfully!",
+        description: "Thank you for contacting us. We'll get back to you within 2 hours.",
+      });
+      
+      // Reset form
+      const form = e.target as HTMLFormElement;
+      form.reset();
+      setIsSubmitting(false);
+    }, 1000);
+  };
+
   const locations = [
     {
       name: "Koregaon Park Center",
@@ -63,58 +86,61 @@ const ContactPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="Enter your first name" />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input id="firstName" placeholder="Enter your first name" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input id="lastName" placeholder="Enter your last name" required />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Enter your last name" />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input id="email" type="email" placeholder="your.email@example.com" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input id="phone" placeholder="+91 98765 43210" required />
+                    </div>
                   </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                   <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="your.email@example.com" />
+                    <Label htmlFor="device">Device Model (Optional)</Label>
+                    <Input id="device" placeholder="e.g., iPhone 15 Pro, Samsung Galaxy S24" />
                   </div>
+
                   <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" placeholder="+91 98765 43210" />
+                    <Label htmlFor="subject">Subject</Label>
+                    <Input id="subject" placeholder="What can we help you with?" required />
                   </div>
-                </div>
 
-                <div>
-                  <Label htmlFor="device">Device Model (Optional)</Label>
-                  <Input id="device" placeholder="e.g., iPhone 15 Pro, Samsung Galaxy S24" />
-                </div>
+                  <div>
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea 
+                      id="message" 
+                      placeholder="Describe your issue or question in detail..."
+                      rows={4}
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="What can we help you with?" />
-                </div>
-
-                <div>
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea 
-                    id="message" 
-                    placeholder="Describe your issue or question in detail..."
-                    rows={4}
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button className="flex-1">
-                    Send Message
-                  </Button>
-                  <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer" className="flex-1">
-                    <Button variant="outline" className="w-full">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      WhatsApp Instead
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                      {isSubmitting ? "Sending..." : "Send Message"}
                     </Button>
-                  </a>
-                </div>
+                    <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer" className="flex-1">
+                      <Button type="button" variant="outline" className="w-full">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        WhatsApp Instead
+                      </Button>
+                    </a>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           </div>

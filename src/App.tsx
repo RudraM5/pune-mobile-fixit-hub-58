@@ -13,6 +13,7 @@ import ServicesPage from "./pages/ServicesPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import CartPage from "./pages/CartPage";
 import ContactPage from "./pages/ContactPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import AdminPanel from "./pages/AdminPanel";
 import UserDashboard from "./pages/UserDashboard";
 import ShopDirectory from "./pages/ShopDirectory";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/book-repair" element={<BookRepairPage />} />
               <Route path="/shops" element={<ShopDirectory />} />
               <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route 

@@ -23,13 +23,20 @@ export const useSignIn = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signIn(email, password);
     
-    if (!error) {
-      console.log('Login successful');
-      navigate(from, { replace: true });
-    } else {
-      console.log('Login failed:', error.message);
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (!error) {
+        console.log('Login successful');
+        // Force navigation to home page after successful login
+        navigate('/', { replace: true });
+      } else {
+        console.log('Login failed:', error.message);
+        setIsLoading(false);
+      }
+    } catch (err) {
+      console.log('Sign in error:', err);
       setIsLoading(false);
     }
   };

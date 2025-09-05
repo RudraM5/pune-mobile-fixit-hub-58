@@ -47,61 +47,14 @@ export interface CustomerRepairRequest {
   notes?: string;
 }
 
-// Mock data for development - different data for admin and customer
-const customerMockRepairs: CustomerRepairRequest[] = [
-  {
-    id: '2',
-    device: {
-      brand: 'Samsung',
-      model: 'Galaxy S21',
-      category: 'smartphone'
-    },
-    description: 'Battery replacement',
-    status: 'completed',
-    priority: 'medium',
-    created_at: '2024-12-10T09:00:00Z',
-    actual_completion: '2024-12-12T15:30:00Z',
-    technician: {
-      name: 'Amit Kumar',
-      phone: '+91 9876543211'
-    },
-    services: [
-      {
-        name: 'Battery Replacement',
-        price: 3500,
-        quantity: 1
-      }
-    ],
-    total_amount: 3500,
-    invoice: {
-      invoice_number: 'INV-2024-001',
-      status: 'paid',
-      due_date: '2024-12-15T00:00:00Z',
-      paid_at: '2024-12-12T16:00:00Z'
-    },
-    status_updates: [
-      {
-        id: '3',
-        new_status: 'pending',
-        message: 'Repair request received',
-        created_at: '2024-12-10T09:00:00Z'
-      },
-      {
-        id: '4',
-        old_status: 'pending',
-        new_status: 'completed',
-        message: 'Battery replaced successfully',
-        created_at: '2024-12-12T15:30:00Z'
-      }
-    ]
-  }
-];
+// Mock data for development - no data initially for clean dashboard
+const customerMockRepairs: CustomerRepairRequest[] = [];
 
 const customerMockStats: CustomerStats = {
-  totalRepairs: 1,
+  totalRepairs: 0,
   activeRepairs: 0,
-  completedRepairs: 1,
-  totalSpent: 3500
+  completedRepairs: 0,
+  totalSpent: 0
 };
 
 export const useCustomerData = () => {

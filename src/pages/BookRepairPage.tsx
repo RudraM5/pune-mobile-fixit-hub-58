@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/layout/Header";
 import MobileSelector from "@/components/MobileSelector";
@@ -16,6 +17,7 @@ import { EnhancedTechnician } from "@/types/shop";
 
 const BookRepairPage = () => {
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [selectedDevice, setSelectedDevice] = useState<MobileDevice | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedShop, setSelectedShop] = useState<any>(null);
@@ -95,13 +97,8 @@ const BookRepairPage = () => {
 
       console.log(`Booking confirmed! Request #${bookingId} for ${selectedShop.name}`);
 
-      // Reset form
-      setSelectedDevice(null);
-      setSelectedServices([]);
-      setSelectedShop(null);
-      clearCart();
-      resetCustomerInfo();
-      setActiveTab("device");
+      // Redirect to checkout page instead of resetting form
+      navigate('/checkout');
 
     } catch (error) {
       console.error('Error creating booking:', error);

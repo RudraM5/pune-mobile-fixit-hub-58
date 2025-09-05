@@ -307,7 +307,7 @@ const ServicesPage = () => {
                     Get Free Quote
                   </Button>
                 </Link>
-                <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" size="lg">
                     WhatsApp for Pricing
                   </Button>
