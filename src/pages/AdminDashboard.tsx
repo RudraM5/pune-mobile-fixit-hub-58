@@ -6,6 +6,7 @@ import AnalyticsTab from "@/components/admin/AnalyticsTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 import ShopsManagementTab from "@/components/admin/ShopsManagementTab";
 import TechniciansManagementTab from "@/components/admin/TechniciansManagementTab";
+import BookingsManagementTab from "@/components/admin/BookingsManagementTab";
 import { mockRepairRequests, mockAnalytics, mockServicePerformance, mockMonthlyRevenue } from "@/data/adminMockData";
 
 const AdminDashboard = () => {
