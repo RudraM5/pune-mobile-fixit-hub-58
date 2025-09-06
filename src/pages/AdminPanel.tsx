@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/layout/Header";
 import OverviewTab from "@/components/admin/OverviewTab";
@@ -6,13 +7,56 @@ import AnalyticsTab from "@/components/admin/AnalyticsTab";
 import SettingsTab from "@/components/admin/SettingsTab";
 import ShopsManagementTab from "@/components/admin/ShopsManagementTab";
 import TechniciansManagementTab from "@/components/admin/TechniciansManagementTab";
-import { mockRepairRequests, mockAnalytics, mockServicePerformance, mockMonthlyRevenue } from "@/data/adminMockData";
+
+// Types for API response (adjust if needed)
+type AnalyticsData = {
+  totalBookings: number;
+  revenue: number;
+  popularService: string;
+};
+
+type ServicePerformance = {
+  service: string;
+  count: number;
+};
+
+type MonthlyRevenue = {
+  month: string;
+  revenue: number;
+};
+
+const API_BASE = import.meta.env.VITE_API_URL || "https://mobilerepairwala-backend.onrender.com";
 
 const AdminPanel = () => {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [servicePerformance, setServicePerformance] = useState<ServicePerformance[]>([]);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/analytics`);
+        if (!res.ok) throw new Error("Failed to fetch analytics");
+        const data = await res.json();
+
+        setAnalytics(data.analytics);
+        setServicePerformance(data.servicePerformance);
+        setMonthlyRevenue(data.monthlyRevenue);
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
@@ -48,11 +92,15 @@ const AdminPanel = () => {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <AnalyticsTab 
-              analytics={mockAnalytics}
-              servicePerformance={mockServicePerformance}
-              monthlyRevenue={mockMonthlyRevenue}
-            />
+            {loading ? (
+              <p>Loading analytics...</p>
+            ) : (
+              <AnalyticsTab
+                analytics={analytics}
+                servicePerformance={servicePerformance}
+                monthlyRevenue={monthlyRevenue}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="settings">
