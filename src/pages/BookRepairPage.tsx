@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,17 +12,18 @@ import { useCart } from "@/contexts/CartContext";
 import { useCustomerInfo } from "@/hooks/useCustomerInfo";
 import { useAuth } from "@/contexts/AuthContext";
 import { MobileDevice, Service } from "@/types/booking";
-import { EnhancedTechnician } from "@/types/shop";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api";
 
 const BookRepairPage = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedDevice, setSelectedDevice] = useState<MobileDevice | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedShop, setSelectedShop] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("device");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const {
     cart,
     addToCart,
@@ -43,14 +43,12 @@ const BookRepairPage = () => {
   const handleDeviceSelect = (device: MobileDevice) => {
     setSelectedDevice(device);
     setActiveTab("services");
-    console.log(`${device.brand} ${device.model} selected`);
   };
 
   const handleServiceAdd = (service: Service) => {
     addToCart(service);
     setSelectedServices(prev => [...prev, service]);
-    
-    // Automatically move to area tab after adding first service
+
     if (cart.length === 0) {
       setTimeout(() => {
         setActiveTab("area");
@@ -66,42 +64,58 @@ const BookRepairPage = () => {
   const handleShopSelect = (shop: any) => {
     setSelectedShop(shop);
     setActiveTab("details");
-    console.log(`Shop ${shop.name} selected`);
   };
 
   const handleBooking = async () => {
     if (!selectedDevice || cart.length === 0) {
-      console.log("Please select a device and add services to cart");
+      alert("Please select a device and add services to cart");
       return;
     }
 
     if (!selectedShop) {
-      console.log("Please select a shop to proceed");
+      alert("Please select a shop to proceed");
       return;
     }
 
     if (!isCustomerInfoValid()) {
-      console.log("Please fill in your contact details");
+      alert("Please fill in your contact details");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Generate a mock booking ID for demo purposes
-      const bookingId = `MR${Date.now().toString().slice(-6)}`;
-      const totalAmount = getTotalPrice();
+      const bookingData = {
+        customer: customerInfo,
+        device: selectedDevice,
+        services: cart,
+        shopId: selectedShop.id, // Ensure your shop has an ID field
+        totalAmount: getTotalPrice(),
+        pickupPreferred: customerInfo.pickupPreferred || false,
+        description: customerInfo.notes || "",
+      };
 
-      // Simulate booking creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch(`${API_BASE_URL}/bookings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingData),
+      });
 
-      console.log(`Booking confirmed! Request #${bookingId} for ${selectedShop.name}`);
+      const data = await response.json();
 
-      // Redirect to checkout page instead of resetting form
-      navigate('/checkout');
+      if (!response.ok) {
+        throw new Error(data.error || "Booking failed");
+      }
 
-    } catch (error) {
-      console.error('Error creating booking:', error);
+      console.log("✅ Booking created:", data);
+
+      clearCart();
+      resetCustomerInfo();
+
+      navigate("/checkout", { state: { bookingId: data.bookingId } });
+    } catch (error: any) {
+      console.error("❌ Booking error:", error);
+      alert(error.message || "Something went wrong while creating booking");
     } finally {
       setIsSubmitting(false);
     }
@@ -110,7 +124,7 @@ const BookRepairPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header cartItems={getTotalItems()} />
-      
+
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Connect with Expert Technicians</h1>
@@ -136,12 +150,12 @@ const BookRepairPage = () => {
 
               <TabsContent value="services" className="space-y-6">
                 {selectedDevice && (
-                  <SelectedDevice 
-                    device={selectedDevice} 
-                    onChangeDevice={() => setActiveTab("device")} 
+                  <SelectedDevice
+                    device={selectedDevice}
+                    onChangeDevice={() => setActiveTab("device")}
                   />
                 )}
-                <ServicesSelector 
+                <ServicesSelector
                   onAddToCart={handleServiceAdd}
                   onProceedToDetails={() => setActiveTab("area")}
                   hasItemsInCart={cart.length > 0}
@@ -149,13 +163,11 @@ const BookRepairPage = () => {
               </TabsContent>
 
               <TabsContent value="area" className="space-y-6">
-                <AreaSearch 
-                  onShopSelect={handleShopSelect}
-                />
+                <AreaSearch onShopSelect={handleShopSelect} />
               </TabsContent>
 
               <TabsContent value="details" className="space-y-6">
-                <CustomerDetails 
+                <CustomerDetails
                   customerInfo={customerInfo}
                   onUpdate={updateCustomerInfo}
                 />
