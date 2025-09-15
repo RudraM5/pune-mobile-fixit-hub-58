@@ -56,12 +56,6 @@ const SignInForm = ({ onSwitchToSignUp }: SignInFormProps) => {
           Don't have an account? Sign up
         </Button>
       </div>
-      
-      <div className="text-center text-sm text-muted-foreground">
-        <p>Demo Admin Account:</p>
-        <p>Email: admin@mobilerepairwala.com</p>
-        <p>Password: admin123</p>
-      </div>
     </form>
   );
 };

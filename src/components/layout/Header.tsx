@@ -98,12 +98,19 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
                 </div>
               </>
             ) : (
-              <Link to="/login">
-                <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-md">
-                  <User className="h-4 w-4 mr-2 transition-transform duration-300 hover:rotate-12" />
-                  Login
-                </Button>
-              </Link>
+              <div className="flex items-center space-x-2">
+                <Link to="/login">
+                  <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-md">
+                    <User className="h-4 w-4 mr-2 transition-transform duration-300 hover:rotate-12" />
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/admin/login">
+                  <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-md">
+                    Admin
+                  </Button>
+                </Link>
+              </div>
             )}
             
             <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer">
@@ -169,12 +176,19 @@ const Header = ({ cartItems = 0 }: HeaderProps) => {
                       </div>
                     </>
                   ) : (
-                    <Link to="/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="outline" className="w-full justify-start">
-                        <User className="h-4 w-4 mr-2" />
-                        Login
-                      </Button>
-                    </Link>
+                    <div className="space-y-2">
+                      <Link to="/login" onClick={() => setIsOpen(false)}>
+                        <Button variant="outline" className="w-full justify-start">
+                          <User className="h-4 w-4 mr-2" />
+                          Login
+                        </Button>
+                      </Link>
+                      <Link to="/admin/login" onClick={() => setIsOpen(false)}>
+                        <Button variant="outline" className="w-full justify-start">
+                          Admin Login
+                        </Button>
+                      </Link>
+                    </div>
                   )}
                   
                   <a href="https://wa.me/919325673075" target="_blank" rel="noopener noreferrer">

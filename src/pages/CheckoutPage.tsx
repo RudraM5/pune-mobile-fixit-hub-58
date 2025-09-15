@@ -26,7 +26,7 @@ const CheckoutPage = () => {
   const { cart, getTotalPrice, clearCart } = useCart();
   const cartItems = cart;
   const total = getTotalPrice();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -72,7 +72,7 @@ const CheckoutPage = () => {
       // Build booking payload
       const bookingData = {
         customer: {
-          name: user?.display_name || "Guest User",
+          name: profile?.display_name || user?.email || "Guest User",
           email: user?.email || "guest@example.com",
           phone: "9325673075", // TODO: get real phone from user input
           address: "Shop No. 15, Lane 5, Koregaon Park, Pune" // TODO: real address

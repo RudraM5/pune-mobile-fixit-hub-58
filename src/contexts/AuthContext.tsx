@@ -1,12 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  display_name?: string;
-  role?: string;
-}
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Profile {
   display_name?: string;
@@ -15,6 +10,7 @@ interface Profile {
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   profile: Profile | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -28,93 +24,148 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch profile data
+          setTimeout(async () => {
+            await fetchUserProfile(session.user.id);
+            await checkAdminRole(session.user.id);
+          }, 0);
+        } else {
+          setProfile(null);
+          setIsAdmin(false);
+        }
+        setIsLoading(false);
+      }
+    );
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
+        checkAdminRole(session.user.id);
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name, phone')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      setProfile(data || null);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const checkAdminRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking admin role:', error);
+        return;
+      }
+
+      setIsAdmin(!!data);
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     
-    // Mock authentication - simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check for demo admin credentials
-    if (email === 'admin@mobilerepairwala.com' && password === 'admin123') {
-      const mockUser = {
-        id: '1',
-        email: email,
-        display_name: 'Admin User',
-        role: 'admin'
-      };
-      const mockProfile = {
-        display_name: 'Admin User',
-        phone: '+91 9876543210'
-      };
-      setUser(mockUser);
-      setProfile(mockProfile);
-      setIsLoading(false);
-      console.log('Login successful:', mockUser);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setIsLoading(false);
+        return { error: { message: error.message } };
+      }
+
       return { error: undefined };
-    }
-    
-    // Check for demo user credentials
-    if (email === 'user@example.com' && password === 'user123') {
-      const mockUser = {
-        id: '2',
-        email: email,
-        display_name: 'Demo User',
-        role: 'user'
-      };
-      const mockProfile = {
-        display_name: 'Demo User',
-        phone: '+91 9876543211'
-      };
-      setUser(mockUser);
-      setProfile(mockProfile);
+    } catch (error: any) {
       setIsLoading(false);
-      console.log('Login successful:', mockUser);
-      return { error: undefined };
+      return { error: { message: error.message || 'An unexpected error occurred' } };
     }
-    
-    setIsLoading(false);
-    return { error: { message: 'Invalid credentials. Use admin@mobilerepairwala.com / admin123 or user@example.com / user123' } };
   };
 
   const signUp = async (email: string, password: string, displayName: string) => {
     setIsLoading(true);
     
-    // Mock sign up - simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const mockUser = {
-      id: Date.now().toString(),
-      email: email,
-      display_name: displayName,
-      role: 'user'
-    };
-    
-    const mockProfile = {
-      display_name: displayName,
-      phone: ''
-    };
-    
-    setUser(mockUser);
-    setProfile(mockProfile);
-    setIsLoading(false);
-    console.log('Sign up successful:', mockUser);
-    return { error: undefined };
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            display_name: displayName
+          }
+        }
+      });
+
+      if (error) {
+        setIsLoading(false);
+        return { error: { message: error.message } };
+      }
+
+      setIsLoading(false);
+      return { error: undefined };
+    } catch (error: any) {
+      setIsLoading(false);
+      return { error: { message: error.message || 'An unexpected error occurred' } };
+    }
   };
 
   const signOut = async () => {
+    await supabase.auth.signOut();
     setUser(null);
+    setSession(null);
     setProfile(null);
-    console.log('User signed out');
+    setIsAdmin(false);
   };
-
-  const isAdmin = user?.role === 'admin';
 
   return (
     <AuthContext.Provider value={{
       user,
+      session,
       profile,
       isAuthenticated: !!user,
       isAdmin,

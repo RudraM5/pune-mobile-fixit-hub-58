@@ -14,6 +14,7 @@ import ReviewsPage from "./pages/ReviewsPage";
 import CartPage from "./pages/CartPage";
 import ContactPage from "./pages/ContactPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel";
 import UserDashboard from "./pages/UserDashboard";
 import ShopDirectory from "./pages/ShopDirectory";
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
               <Route 
                 path="/admin" 
                 element={
