@@ -92,7 +92,7 @@ const BookRepairPage = () => {
         shopId: selectedShop.id, // Ensure your shop has an ID field
         totalAmount: getTotalPrice(),
         pickupPreferred: customerInfo.pickupPreferred || false,
-        description: customerInfo.notes || "",
+        description: customerInfo.description || "",
       };
 
       const response = await fetch(`${API_BASE_URL}/bookings`, {

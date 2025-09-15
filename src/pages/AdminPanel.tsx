@@ -8,27 +8,12 @@ import SettingsTab from "@/components/admin/SettingsTab";
 import ShopsManagementTab from "@/components/admin/ShopsManagementTab";
 import TechniciansManagementTab from "@/components/admin/TechniciansManagementTab";
 
-// Types for API response (adjust if needed)
-type AnalyticsData = {
-  totalBookings: number;
-  revenue: number;
-  popularService: string;
-};
-
-type ServicePerformance = {
-  service: string;
-  count: number;
-};
-
-type MonthlyRevenue = {
-  month: string;
-  revenue: number;
-};
+import { Analytics, ServicePerformance, MonthlyRevenue } from "@/types/admin";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://mobilerepairwala-backend.onrender.com";
 
 const AdminPanel = () => {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [servicePerformance, setServicePerformance] = useState<ServicePerformance[]>([]);
   const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue[]>([]);
   const [loading, setLoading] = useState(true);

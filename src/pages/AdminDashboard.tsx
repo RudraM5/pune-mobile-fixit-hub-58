@@ -9,27 +9,12 @@ import ShopsManagementTab from "@/components/admin/ShopsManagementTab";
 import TechniciansManagementTab from "@/components/admin/TechniciansManagementTab";
 import BookingsManagementTab from "@/components/admin/BookingsManagementTab";
 
-// Define types (adjust based on your backend API response)
-type AnalyticsData = {
-  totalBookings: number;
-  revenue: number;
-  popularService: string;
-};
-
-type ServicePerformance = {
-  service: string;
-  count: number;
-};
-
-type MonthlyRevenue = {
-  month: string;
-  revenue: number;
-};
+import { Analytics, ServicePerformance, MonthlyRevenue } from "@/types/admin";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://mobilerepairwala-backend.onrender.com";
 
 const AdminDashboard = () => {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [servicePerformance, setServicePerformance] = useState<ServicePerformance[]>([]);
   const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue[]>([]);
   const [loading, setLoading] = useState(true);
