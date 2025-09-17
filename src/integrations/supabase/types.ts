@@ -14,6 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
+      before_after_gallery: {
+        Row: {
+          after_image_url: string | null
+          before_image_url: string | null
+          created_at: string
+          description: string | null
+          device_model: string
+          id: string
+          is_featured: boolean | null
+          repair_request_id: string | null
+          service_type: string
+          technician_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          after_image_url?: string | null
+          before_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          device_model: string
+          id?: string
+          is_featured?: boolean | null
+          repair_request_id?: string | null
+          service_type: string
+          technician_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          after_image_url?: string | null
+          before_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          device_model?: string
+          id?: string
+          is_featured?: boolean | null
+          repair_request_id?: string | null
+          service_type?: string
+          technician_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "before_after_gallery_repair_request_id_fkey"
+            columns: ["repair_request_id"]
+            isOneToOne: false
+            referencedRelation: "repair_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "before_after_gallery_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          quantity: number
+          service_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          service_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          service_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mobile_devices: {
+        Row: {
+          brand: string
+          created_at: string
+          id: string
+          model: string
+          updated_at: string
+        }
+        Insert: {
+          brand: string
+          created_at?: string
+          id?: string
+          model: string
+          updated_at?: string
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          id?: string
+          model?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -41,6 +160,416 @@ export type Database = {
         }
         Relationships: []
       }
+      repair_request_services: {
+        Row: {
+          created_at: string
+          id: string
+          quantity: number
+          repair_request_id: string | null
+          service_id: string | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          repair_request_id?: string | null
+          service_id?: string | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          repair_request_id?: string | null
+          service_id?: string | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_request_services_repair_request_id_fkey"
+            columns: ["repair_request_id"]
+            isOneToOne: false
+            referencedRelation: "repair_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_request_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_requests: {
+        Row: {
+          actual_completion: string | null
+          assigned_technician_id: string | null
+          created_at: string
+          customer_address: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string
+          device_brand: string
+          device_model: string
+          estimated_completion: string | null
+          id: string
+          issue_description: string | null
+          notes: string | null
+          payment_method: string | null
+          payment_status: string | null
+          pickup_address: string | null
+          pickup_preferred: boolean | null
+          priority: string | null
+          shop_id: string | null
+          status: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          actual_completion?: string | null
+          assigned_technician_id?: string | null
+          created_at?: string
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone: string
+          device_brand: string
+          device_model: string
+          estimated_completion?: string | null
+          id?: string
+          issue_description?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pickup_address?: string | null
+          pickup_preferred?: boolean | null
+          priority?: string | null
+          shop_id?: string | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          actual_completion?: string | null
+          assigned_technician_id?: string | null
+          created_at?: string
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string
+          device_brand?: string
+          device_model?: string
+          estimated_completion?: string | null
+          id?: string
+          issue_description?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pickup_address?: string | null
+          pickup_preferred?: boolean | null
+          priority?: string | null
+          shop_id?: string | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_requests_assigned_technician_id_fkey"
+            columns: ["assigned_technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_requests_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          created_at: string
+          customer_name: string
+          device_model: string | null
+          id: string
+          is_featured: boolean | null
+          is_verified: boolean | null
+          rating: number
+          repair_request_id: string | null
+          review_text: string | null
+          service_type: string | null
+          shop_id: string | null
+          technician_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          device_model?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_verified?: boolean | null
+          rating: number
+          repair_request_id?: string | null
+          review_text?: string | null
+          service_type?: string | null
+          shop_id?: string | null
+          technician_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          device_model?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_verified?: boolean | null
+          rating?: number
+          repair_request_id?: string | null
+          review_text?: string | null
+          service_type?: string | null
+          shop_id?: string | null
+          technician_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_repair_request_id_fkey"
+            columns: ["repair_request_id"]
+            isOneToOne: false
+            referencedRelation: "repair_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          duration: string
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration: string
+          id?: string
+          is_active?: boolean
+          name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shops: {
+        Row: {
+          address: string
+          area: string
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          latitude: number | null
+          longitude: number | null
+          name: string
+          owner_name: string
+          phone: string
+          rating: number | null
+          total_repairs: number | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          area: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          owner_name: string
+          phone: string
+          rating?: number | null
+          total_repairs?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          area?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          owner_name?: string
+          phone?: string
+          rating?: number | null
+          total_repairs?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      technicians: {
+        Row: {
+          area: string
+          availability_status: string | null
+          bio: string | null
+          certifications: string[] | null
+          completed_repairs: number | null
+          created_at: string
+          email: string | null
+          expertise_level: string | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean
+          name: string
+          phone: string
+          rating: number | null
+          shop_id: string | null
+          specialization: string[] | null
+          updated_at: string
+          user_id: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          area: string
+          availability_status?: string | null
+          bio?: string | null
+          certifications?: string[] | null
+          completed_repairs?: number | null
+          created_at?: string
+          email?: string | null
+          expertise_level?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          phone: string
+          rating?: number | null
+          shop_id?: string | null
+          specialization?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          area?: string
+          availability_status?: string | null
+          bio?: string | null
+          certifications?: string[] | null
+          completed_repairs?: number | null
+          created_at?: string
+          email?: string | null
+          expertise_level?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string
+          rating?: number | null
+          shop_id?: string | null
+          specialization?: string[] | null
+          updated_at?: string
+          user_id?: string | null
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technicians_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -59,6 +588,45 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      video_testimonials: {
+        Row: {
+          created_at: string
+          customer_name: string
+          id: string
+          is_featured: boolean | null
+          rating: number
+          service_type: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name: string
+          id?: string
+          is_featured?: boolean | null
+          rating: number
+          service_type: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string
+          id?: string
+          is_featured?: boolean | null
+          rating?: number
+          service_type?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
         }
         Relationships: []
       }
