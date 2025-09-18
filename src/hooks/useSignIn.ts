@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { validateSignInForm } from '@/utils/authValidation';
 
 export const useSignIn = () => {
   const [email, setEmail] = useState('');
@@ -11,14 +13,21 @@ export const useSignIn = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   
   const from = location.state?.from?.pathname || '/';
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim() || !password.trim()) {
-      console.log('Please fill in all fields');
+    // Validate form
+    const validation = validateSignInForm(email, password);
+    if (!validation.isValid) {
+      toast({
+        variant: "destructive",
+        title: validation.error!.title,
+        description: validation.error!.description,
+      });
       return;
     }
 
@@ -28,15 +37,37 @@ export const useSignIn = () => {
       const { error } = await signIn(email, password);
       
       if (!error) {
-        console.log('Login successful');
-        // Force navigation to home page after successful login
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
         navigate('/', { replace: true });
       } else {
-        console.log('Login failed:', error.message);
+        let errorMessage = error.message;
+        let errorTitle = "Sign In Failed";
+        
+        // Handle specific error cases
+        if (error.message.includes('Email not confirmed')) {
+          errorTitle = "Email Confirmation Required";
+          errorMessage = "Please check your email and click the confirmation link before signing in.";
+        } else if (error.message.includes('Invalid login credentials')) {
+          errorTitle = "Invalid Credentials";
+          errorMessage = "The email or password you entered is incorrect. Please try again.";
+        }
+        
+        toast({
+          variant: "destructive",
+          title: errorTitle,
+          description: errorMessage,
+        });
         setIsLoading(false);
       }
     } catch (err) {
-      console.log('Sign in error:', err);
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Unable to connect to the server. Please try again.",
+      });
       setIsLoading(false);
     }
   };

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
 import SignInForm from './SignInForm';
 import SignUpForm from './SignUpForm';
 
@@ -45,6 +46,7 @@ const LoginPage = () => {
           </CardContent>
         </Card>
       </div>
+      <Toaster />
     </div>
   );
 };

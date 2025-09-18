@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { validateSignUpForm } from '@/utils/authValidation';
 
 export const useSignUp = (onSuccess: () => void) => {
   const [email, setEmail] = useState('');
@@ -11,6 +13,7 @@ export const useSignUp = (onSuccess: () => void) => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { signUp } = useAuth();
+  const { toast } = useToast();
 
   const clearForm = () => {
     setEmail('');
@@ -23,18 +26,14 @@ export const useSignUp = (onSuccess: () => void) => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim() || !password.trim() || !confirmPassword.trim() || !displayName.trim()) {
-      console.log('Please fill in all required fields');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      console.log('Passwords do not match');
-      return;
-    }
-
-    if (password.length < 6) {
-      console.log('Password must be at least 6 characters');
+    // Validate form
+    const validation = validateSignUpForm(email, password, confirmPassword, displayName);
+    if (!validation.isValid) {
+      toast({
+        variant: "destructive",
+        title: validation.error!.title,
+        description: validation.error!.description,
+      });
       return;
     }
 
@@ -44,14 +43,30 @@ export const useSignUp = (onSuccess: () => void) => {
       const { error } = await signUp(email.trim(), password, displayName.trim());
       
       if (!error) {
-        console.log('Account created successfully');
+        toast({
+          title: "Account Created Successfully!",
+          description: "Please check your email for a confirmation link before signing in.",
+        });
         clearForm();
         onSuccess();
       } else {
-        console.log('Sign up failed:', error.message);
+        let errorMessage = error.message;
+        if (error.message.includes('already been registered')) {
+          errorMessage = "This email is already registered. Please sign in instead.";
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "Sign Up Failed",
+          description: errorMessage,
+        });
       }
     } catch (err) {
-      console.log('Network error occurred');
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Unable to connect to the server. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
