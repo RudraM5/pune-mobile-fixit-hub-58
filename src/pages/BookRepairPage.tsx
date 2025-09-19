@@ -12,8 +12,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useCustomerInfo } from "@/hooks/useCustomerInfo";
 import { useAuth } from "@/contexts/AuthContext";
 import { MobileDevice, Service } from "@/types/booking";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api";
+import { createBooking } from "@/lib/api";
 
 const BookRepairPage = () => {
   const { user } = useAuth();
@@ -95,17 +94,7 @@ const BookRepairPage = () => {
         description: customerInfo.description || "",
       };
 
-      const response = await fetch(`${API_BASE_URL}/bookings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Booking failed");
-      }
+      const data = await createBooking(bookingData);
 
       console.log("✅ Booking created:", data);
 
