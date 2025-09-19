@@ -27,7 +27,7 @@ export async function createBooking(data: any) {
     p_total_amount: data.totalAmount,
     p_pickup_preferred: data.pickupPreferred,
     p_issue_description: data.description,
-    p_services: data.services
+    p_services: JSON.stringify(data.services)
   });
 
   if (error) {

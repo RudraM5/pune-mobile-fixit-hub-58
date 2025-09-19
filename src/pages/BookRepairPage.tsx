@@ -88,20 +88,71 @@ const BookRepairPage = () => {
         customer: customerInfo,
         device: selectedDevice,
         services: cart,
-        shopId: selectedShop.id, // Ensure your shop has an ID field
+        shopId: selectedShop.id,
         totalAmount: getTotalPrice(),
         pickupPreferred: customerInfo.pickupPreferred || false,
         description: customerInfo.description || "",
       };
 
       const data = await createBooking(bookingData);
-
       console.log("✅ Booking created:", data);
 
-      clearCart();
-      resetCustomerInfo();
+      // Create Razorpay order
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-razorpay-order', {
+        body: {
+          amount: getTotalPrice(),
+          currency: 'INR',
+          receipt: `booking_${data.bookingId}`,
+          bookingId: data.bookingId
+        }
+      });
 
-      navigate("/checkout", { state: { bookingId: data.bookingId } });
+      if (paymentError) {
+        console.error("Payment error:", paymentError);
+        alert("Booking created but payment setup failed. Please contact support.");
+        return;
+      }
+
+      // Initialize Razorpay payment
+      const options = {
+        key: paymentData.key_id,
+        amount: paymentData.order.amount,
+        currency: paymentData.order.currency,
+        name: "Mobile Repair Wala",
+        description: `Payment for repair booking #${data.bookingId}`,
+        order_id: paymentData.order.id,
+        handler: function (response: any) {
+          console.log("Payment successful:", response);
+          clearCart();
+          resetCustomerInfo();
+          alert("Payment successful! Your booking has been confirmed.");
+          navigate("/", { replace: true });
+        },
+        prefill: {
+          name: customerInfo.name,
+          email: customerInfo.email,
+          contact: customerInfo.phone
+        },
+        theme: {
+          color: "#3B82F6"
+        }
+      };
+
+      // Load Razorpay script if not already loaded
+      if (!(window as any).Razorpay) {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => {
+          const rzp = new (window as any).Razorpay(options);
+          rzp.open();
+        };
+        document.body.appendChild(script);
+      } else {
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      }
+
     } catch (error: any) {
       console.error("❌ Booking error:", error);
       alert(error.message || "Something went wrong while creating booking");
