@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,173 +15,47 @@ import {
 } from "lucide-react";
 import Header from "@/components/layout/Header";
 
-const shops = [
-  {
-    id: "shop1",
-    name: "TechFix Mobile Center",
-    owner_name: "Rajesh Sharma",
-    phone: "+91-9876543210",
-    email: "techfix.pune@gmail.com",
-    address: "Shop 15, FC Road, Near Sambhaji Bridge",
-    area: "FC Road",
-    rating: 4.5,
-    total_repairs: 150,
-    technicians: [
-      {
-        name: "Arjun Mehta",
-        specialization: ["Screen Replacement", "Battery Replacement", "Camera Repair"],
-        rating: 4.6,
-        experience: 5
-      },
-      {
-        name: "Priyanka Das",
-        specialization: ["Screen Replacement", "Data Recovery", "Software Issues"],
-        rating: 4.9,
-        experience: 8
-      }
-    ]
-  },
-  {
-    id: "shop2",
-    name: "QuickFix Solutions",
-    owner_name: "Amit Kumar",
-    phone: "+91-9876543212",
-    email: "quickfix.vimaan@gmail.com",
-    address: "Shop 22, Airport Road, Viman Nagar",
-    area: "Viman Nagar",
-    rating: 4.7,
-    total_repairs: 200,
-    technicians: [
-      {
-        name: "Pooja Gupta",
-        specialization: ["Water Damage", "Motherboard Repair", "Software Issues"],
-        rating: 4.8,
-        experience: 7
-      }
-    ]
-  },
-  {
-    id: "shop3",
-    name: "Expert Mobile Solutions",
-    owner_name: "Kavita Singh",
-    phone: "+91-9876543215",
-    email: "expert.wakad@gmail.com",
-    address: "Shop 18, Wakad IT Park Road",
-    area: "Wakad",
-    rating: 4.6,
-    total_repairs: 180,
-    technicians: [
-      {
-        name: "Vikram Singh",
-        specialization: ["Charging Port", "Speaker Repair", "Battery Replacement"],
-        rating: 4.4,
-        experience: 4
-      }
-    ]
-  },
-  {
-    id: "shop4",
-    name: "Mobile Care Hub",
-    owner_name: "Suresh Patel",
-    phone: "+91-9876543220",
-    email: "mobilecare.kothrud@gmail.com",
-    address: "Shop 8, Kothrud Main Road",
-    area: "Kothrud",
-    rating: 4.3,
-    total_repairs: 120,
-    technicians: [
-      {
-        name: "Rohit Kumar",
-        specialization: ["Battery Replacement", "Charging Port", "Water Damage"],
-        rating: 4.2,
-        experience: 3
-      }
-    ]
-  },
-  {
-    id: "shop5",
-    name: "Gadget Fix Center",
-    owner_name: "Priya Reddy",
-    phone: "+91-9876543225",
-    email: "gadgetfix.baner@gmail.com",
-    address: "Shop 12, Baner Main Street",
-    area: "Baner",
-    rating: 4.4,
-    total_repairs: 95,
-    technicians: [
-      {
-        name: "Anil Sharma",
-        specialization: ["Screen Replacement", "Camera Repair", "Software Issues"],
-        rating: 4.5,
-        experience: 6
-      }
-    ]
-  },
-  {
-    id: "shop6",
-    name: "Smart Repair Solutions",
-    owner_name: "Neha Joshi",
-    phone: "+91-9876543230",
-    email: "smart.hinjewadi@gmail.com",
-    address: "Shop 25, Hinjewadi Phase 1",
-    area: "Hinjewadi",
-    rating: 4.2,
-    total_repairs: 85,
-    technicians: [
-      {
-        name: "Kiran Patil",
-        specialization: ["Motherboard Repair", "Water Damage", "Data Recovery"],
-        rating: 4.7,
-        experience: 9
-      }
-    ]
-  },
-  {
-    id: "shop7",
-    name: "ProFix Mobile Care",
-    owner_name: "Deepak Gupta",
-    phone: "+91-9876543235",
-    email: "profix.shivajinagar@gmail.com",
-    address: "Shop 9, Shivajinagar Main Road",
-    area: "Shivajinagar",
-    rating: 4.1,
-    total_repairs: 75,
-    technicians: [
-      {
-        name: "Ravi Joshi",
-        specialization: ["Screen Replacement", "Battery Replacement", "Speaker Repair"],
-        rating: 4.1,
-        experience: 4
-      }
-    ]
-  },
-  {
-    id: "shop8",
-    name: "TechCare Solutions",
-    owner_name: "Sneha Pawar",
-    phone: "+91-9876543240",
-    email: "techcare.aundh@gmail.com",
-    address: "Shop 18, Aundh IT Park",
-    area: "Aundh",
-    rating: 4.5,
-    total_repairs: 110,
-    technicians: [
-      {
-        name: "Kavita Desai",
-        specialization: ["Water Damage", "Charging Port", "Software Issues"],
-        rating: 4.6,
-        experience: 7
-      }
-    ]
-  }
-];
-
-const areas = Array.from(new Set(shops.map(shop => shop.area))).sort();
+import { supabase } from "@/integrations/supabase/client";
 
 const ShopDirectory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedArea, setSelectedArea] = useState<string>("all");
   const [expandedShop, setExpandedShop] = useState<string | null>(null);
+  const [shops, setShops] = useState<any[]>([]);
+  const [areas, setAreas] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchShopsAndTechnicians = async () => {
+      try {
+        const [shopsResponse, techniciansResponse] = await Promise.all([
+          supabase.from('shops').select('*').eq('is_active', true).order('name'),
+          supabase.from('technicians').select('*').eq('is_active', true)
+        ]);
+
+        if (shopsResponse.data && techniciansResponse.data) {
+          const shopsWithTechnicians = shopsResponse.data.map(shop => ({
+            ...shop,
+            technicians: techniciansResponse.data.filter(tech => tech.shop_id === shop.id).map(tech => ({
+              name: tech.name,
+              specialization: tech.specialization || [],
+              rating: tech.rating,
+              experience: tech.years_experience
+            }))
+          }));
+          
+          setShops(shopsWithTechnicians);
+          setAreas(Array.from(new Set(shopsResponse.data.map(shop => shop.area))).sort());
+        }
+      } catch (error) {
+        console.error('Error fetching shops and technicians:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShopsAndTechnicians();
+  }, []);
 
   const filteredShops = shops.filter(shop => {
     const matchesSearch = shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -192,6 +66,24 @@ const ShopDirectory = () => {
     
     return matchesSearch && matchesArea;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4">Loading Shops...</h1>
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-24 bg-muted animate-pulse rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import TechnicianDetailsModal from "./TechnicianDetailsModal";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   User, 
   Plus, 
@@ -18,95 +19,41 @@ import {
   Store
 } from "lucide-react";
 
-const mockTechnicians = [
-  {
-    id: "tech1",
-    name: "Arjun Mehta",
-    phone: "+91-9876543301",
-    email: "arjun.mehta@techfix.com",
-    shop_name: "TechFix Mobile Center",
-    area: "FC Road",
-    specialization: ["Screen Replacement", "Battery Replacement", "Camera Repair"],
-    expertise_level: "expert",
-    years_experience: 5,
-    rating: 4.6,
-    completed_repairs: 85,
-    availability_status: "available",
-    hourly_rate: 300,
-    is_active: true
-  },
-  {
-    id: "tech2",
-    name: "Pooja Gupta",
-    phone: "+91-9876543302",
-    email: "pooja.gupta@quickfix.com",
-    shop_name: "QuickFix Solutions",
-    area: "Viman Nagar",
-    specialization: ["Water Damage", "Motherboard Repair", "Software Issues"],
-    expertise_level: "master",
-    years_experience: 7,
-    rating: 4.8,
-    completed_repairs: 120,
-    availability_status: "available",
-    hourly_rate: 400,
-    is_active: true
-  },
-  {
-    id: "tech3",
-    name: "Vikram Singh",
-    phone: "+91-9876543303",
-    email: "vikram.singh@expert.com",
-    shop_name: "Expert Mobile Solutions",
-    area: "Wakad",
-    specialization: ["Charging Port", "Speaker Repair", "Battery Replacement"],
-    expertise_level: "expert",
-    years_experience: 4,
-    rating: 4.4,
-    completed_repairs: 95,
-    availability_status: "busy",
-    hourly_rate: 350,
-    is_active: true
-  },
-  {
-    id: "tech4",
-    name: "Priyanka Das",
-    phone: "+91-9876543306",
-    email: "priyanka.das@expert.com",
-    shop_name: "TechFix Mobile Center",
-    area: "FC Road",
-    specialization: ["Screen Replacement", "Data Recovery", "Software Issues"],
-    expertise_level: "master",
-    years_experience: 8,
-    rating: 4.9,
-    completed_repairs: 150,
-    availability_status: "available",
-    hourly_rate: 450,
-    is_active: true
-  },
-  {
-    id: "tech5",
-    name: "Rohit Kumar",
-    phone: "+91-9876543308",
-    email: "rohit.kumar@mobilecare.com",
-    shop_name: "Mobile Care Hub",
-    area: "Kothrud",
-    specialization: ["Battery Replacement", "Charging Port", "Water Damage"],
-    expertise_level: "intermediate",
-    years_experience: 3,
-    rating: 4.2,
-    completed_repairs: 65,
-    availability_status: "available",
-    hourly_rate: 250,
-    is_active: true
-  }
-];
-
 const TechniciansManagementTab = () => {
-  const [technicians, setTechnicians] = useState(mockTechnicians);
+  const [technicians, setTechnicians] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTechnician, setSelectedTechnician] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'add'>('view');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTechnicians = async () => {
+      try {
+        const [techniciansResponse, shopsResponse] = await Promise.all([
+          supabase.from('technicians').select('*').order('name'),
+          supabase.from('shops').select('id, name')
+        ]);
+        
+        if (techniciansResponse.error) throw techniciansResponse.error;
+        
+        // Add shop name to each technician
+        const techniciansWithShop = (techniciansResponse.data || []).map(tech => ({
+          ...tech,
+          shop_name: shopsResponse.data?.find(shop => shop.id === tech.shop_id)?.name || 'Unknown Shop'
+        }));
+        
+        setTechnicians(techniciansWithShop);
+      } catch (error) {
+        console.error('Error fetching technicians:', error);
+        toast.error('Failed to fetch technicians');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTechnicians();
+  }, []);
 
   const filteredTechnicians = technicians.filter(tech =>
     tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

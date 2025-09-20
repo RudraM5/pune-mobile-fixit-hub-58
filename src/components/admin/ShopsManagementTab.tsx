@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import ShopDetailsModal from "./ShopDetailsModal";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Store, 
   Plus, 
@@ -17,80 +18,41 @@ import {
   Trash2
 } from "lucide-react";
 
-const mockShops = [
-  {
-    id: "shop1",
-    name: "TechFix Mobile Center",
-    owner_name: "Rajesh Sharma",
-    phone: "+91-9876543210",
-    email: "techfix.pune@gmail.com",
-    address: "Shop 15, FC Road, Near Sambhaji Bridge",
-    area: "FC Road",
-    rating: 4.5,
-    total_repairs: 150,
-    technicians_count: 3,
-    is_active: true
-  },
-  {
-    id: "shop2",
-    name: "QuickFix Solutions",
-    owner_name: "Amit Kumar",
-    phone: "+91-9876543212",
-    email: "quickfix.vimaan@gmail.com",
-    address: "Shop 22, Airport Road, Viman Nagar",
-    area: "Viman Nagar",
-    rating: 4.7,
-    total_repairs: 200,
-    technicians_count: 2,
-    is_active: true
-  },
-  {
-    id: "shop3",
-    name: "Expert Mobile Solutions",
-    owner_name: "Kavita Singh",
-    phone: "+91-9876543215",
-    email: "expert.wakad@gmail.com",
-    address: "Shop 18, Wakad IT Park Road",
-    area: "Wakad",
-    rating: 4.6,
-    total_repairs: 180,
-    technicians_count: 4,
-    is_active: true
-  },
-  {
-    id: "shop4",
-    name: "Mobile Care Hub",
-    owner_name: "Suresh Patel",
-    phone: "+91-9876543220",
-    email: "mobilecare.kothrud@gmail.com",
-    address: "Shop 8, Kothrud Main Road",
-    area: "Kothrud",
-    rating: 4.3,
-    total_repairs: 120,
-    technicians_count: 2,
-    is_active: true
-  },
-  {
-    id: "shop5",
-    name: "Gadget Fix Center",
-    owner_name: "Priya Reddy",
-    phone: "+91-9876543225",
-    email: "gadgetfix.baner@gmail.com",
-    address: "Shop 12, Baner Main Street",
-    area: "Baner",
-    rating: 4.4,
-    total_repairs: 95,
-    technicians_count: 3,
-    is_active: true
-  }
-];
-
 const ShopsManagementTab = () => {
-  const [shops, setShops] = useState(mockShops);
+  const [shops, setShops] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedShop, setSelectedShop] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'add'>('view');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchShops = async () => {
+      try {
+        const [shopsResponse, techniciansResponse] = await Promise.all([
+          supabase.from('shops').select('*').order('name'),
+          supabase.from('technicians').select('shop_id')
+        ]);
+        
+        if (shopsResponse.error) throw shopsResponse.error;
+        
+        // Add technician count to each shop
+        const shopsWithTechCount = (shopsResponse.data || []).map(shop => ({
+          ...shop,
+          technicians_count: techniciansResponse.data?.filter(tech => tech.shop_id === shop.id).length || 0
+        }));
+        
+        setShops(shopsWithTechCount);
+      } catch (error) {
+        console.error('Error fetching shops:', error);
+        toast.error('Failed to fetch shops');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShops();
+  }, []);
 
   const filteredShops = shops.filter(shop =>
     shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
