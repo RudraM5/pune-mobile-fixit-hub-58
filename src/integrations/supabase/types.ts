@@ -636,19 +636,33 @@ export type Database = {
     }
     Functions: {
       create_repair_booking: {
-        Args: {
-          p_customer_address: string
-          p_customer_email: string
-          p_customer_name: string
-          p_customer_phone: string
-          p_device_brand: string
-          p_device_model: string
-          p_issue_description?: string
-          p_pickup_preferred?: boolean
-          p_services?: Json
-          p_shop_id: string
-          p_total_amount: number
-        }
+        Args:
+          | {
+              p_customer_address: string
+              p_customer_email: string
+              p_customer_name: string
+              p_customer_phone: string
+              p_device_brand: string
+              p_device_model: string
+              p_issue_description?: string
+              p_pickup_preferred?: boolean
+              p_services?: Json
+              p_shop_id: string
+              p_total_amount: number
+            }
+          | {
+              p_customer_address: string
+              p_customer_email: string
+              p_customer_name: string
+              p_customer_phone: string
+              p_device_brand: string
+              p_device_model: string
+              p_issue_description?: string
+              p_pickup_preferred?: boolean
+              p_services?: string
+              p_shop_id: string
+              p_total_amount: number
+            }
         Returns: string
       }
       has_role: {
