@@ -27,7 +27,7 @@ export async function createBooking(data: any) {
     p_total_amount: data.totalAmount,
     p_pickup_preferred: data.pickupPreferred,
     p_issue_description: data.description,
-    p_services: JSON.stringify(data.services) // ✅ Always array
+    p_services: data.services, // ✅ pass raw array, not string
   });
 
   if (error) {
@@ -35,7 +35,6 @@ export async function createBooking(data: any) {
     throw new Error(error.message || "Failed to create booking");
   }
 
-  // ✅ bookingId is already a UUID, return it clean
   return { bookingId };
 }
 
