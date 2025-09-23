@@ -16,7 +16,7 @@ export async function createBooking(data: any) {
   // Import supabase client
   const { supabase } = await import("@/integrations/supabase/client");
   
-  const { data: bookingId, error } = await supabase.rpc('create_repair_booking', {
+  const { data: bookingId, error } = await supabase.rpc("create_repair_booking", {
     p_customer_name: data.customer.name,
     p_customer_phone: data.customer.phone,
     p_customer_email: data.customer.email,
@@ -27,14 +27,15 @@ export async function createBooking(data: any) {
     p_total_amount: data.totalAmount,
     p_pickup_preferred: data.pickupPreferred,
     p_issue_description: data.description,
-    p_services: JSON.stringify(data.services)
+    p_services: JSON.stringify(data.services) // ✅ Always array
   });
 
   if (error) {
-    console.error('Booking error:', error);
+    console.error("Booking error:", error);
     throw new Error(error.message || "Failed to create booking");
   }
 
+  // ✅ bookingId is already a UUID, return it clean
   return { bookingId };
 }
 
