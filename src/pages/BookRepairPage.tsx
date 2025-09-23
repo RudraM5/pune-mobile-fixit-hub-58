@@ -1,35 +1,81 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Header from "@/components/layout/Header";
+import MobileSelector from "@/components/MobileSelector";
+import SelectedDevice from "@/components/booking/SelectedDevice";
+import ServicesSelector from "@/components/booking/ServicesSelector";
+import CustomerDetails from "@/components/booking/CustomerDetails";
+import BookingCart from "@/components/booking/BookingCart";
+import AreaSearch from "@/components/booking/AreaSearch";
+import { useCart } from "@/contexts/CartContext";
+import { useCustomerInfo } from "@/hooks/useCustomerInfo";
+import { useAuth } from "@/contexts/AuthContext";
+import { MobileDevice, Service } from "@/types/booking";
 import { createBooking } from "@/lib/api";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
-export default function BookRepairPage() {
-  const [selectedDevice, setSelectedDevice] = useState<any>(null);
-  const [cart, setCart] = useState<any[]>([]);
+const BookRepairPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [selectedDevice, setSelectedDevice] = useState<MobileDevice | null>(null);
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedShop, setSelectedShop] = useState<any>(null);
-  const [customerInfo, setCustomerInfo] = useState<any>({});
+  const [activeTab, setActiveTab] = useState("device");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const getTotalPrice = () =>
-    cart.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+  const {
+    cart,
+    addToCart,
+    removeFromCart,
+    getTotalPrice,
+    getTotalItems,
+    clearCart
+  } = useCart();
 
-  const isCustomerInfoValid = () =>
-    customerInfo?.name &&
-    customerInfo?.phone &&
-    customerInfo?.email &&
-    customerInfo?.address;
+  const {
+    customerInfo,
+    updateCustomerInfo,
+    resetCustomerInfo,
+    isValid: isCustomerInfoValid
+  } = useCustomerInfo();
+
+  const handleDeviceSelect = (device: MobileDevice) => {
+    setSelectedDevice(device);
+    setActiveTab("services");
+  };
+
+  const handleServiceAdd = (service: Service) => {
+    addToCart(service);
+    setSelectedServices(prev => [...prev, service]);
+
+    if (cart.length === 0) {
+      setTimeout(() => {
+        setActiveTab("area");
+      }, 500);
+    }
+  };
+
+  const handleServiceRemove = (serviceId: string) => {
+    removeFromCart(serviceId);
+    setSelectedServices(prev => prev.filter(s => s.id !== serviceId));
+  };
+
+  const handleShopSelect = (shop: any) => {
+    setSelectedShop(shop);
+    setActiveTab("details");
+  };
 
   const handleBooking = async () => {
     if (!selectedDevice || cart.length === 0) {
       alert("Please select a device and add services to cart");
       return;
     }
+
     if (!selectedShop) {
       alert("Please select a shop to proceed");
       return;
     }
+
     if (!isCustomerInfoValid()) {
       alert("Please fill in your contact details");
       return;
@@ -38,15 +84,10 @@ export default function BookRepairPage() {
     setIsSubmitting(true);
 
     try {
-      const formattedServices = cart.map((s) => ({
-        service: { id: s.id, price: s.price },
-        quantity: s.quantity || 1,
-      }));
-
       const bookingData = {
         customer: customerInfo,
         device: selectedDevice,
-        services: formattedServices,
+        services: cart,
         shopId: selectedShop.id,
         totalAmount: getTotalPrice(),
         pickupPreferred: customerInfo.pickupPreferred || false,
@@ -56,168 +97,141 @@ export default function BookRepairPage() {
       const data = await createBooking(bookingData);
       console.log("✅ Booking created:", data);
 
-      alert("Booking successful!");
-      setCart([]);
-      setSelectedDevice(null);
-      setSelectedShop(null);
-      setCustomerInfo({});
-    } catch (err: any) {
-      console.error("Booking failed:", err);
-      alert("Booking failed: " + err.message);
+      // Create Razorpay order
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-razorpay-order', {
+        body: {
+          amount: getTotalPrice(),
+          currency: 'INR',
+          receipt: `booking_${data.bookingId}`,
+          bookingId: data.bookingId
+        }
+      });
+
+      if (paymentError) {
+        console.error("Payment error:", paymentError);
+        alert("Booking created but payment setup failed. Please contact support.");
+        return;
+      }
+
+      // Initialize Razorpay payment
+      const options = {
+        key: paymentData.key_id,
+        amount: paymentData.order.amount,
+        currency: paymentData.order.currency,
+        name: "Mobile Repair Wala",
+        description: `Payment for repair booking #${data.bookingId}`,
+        order_id: paymentData.order.id,
+        handler: function (response: any) {
+          console.log("Payment successful:", response);
+          clearCart();
+          resetCustomerInfo();
+          alert("Payment successful! Your booking has been confirmed.");
+          navigate("/", { replace: true });
+        },
+        prefill: {
+          name: customerInfo.name,
+          email: customerInfo.email,
+          contact: customerInfo.phone
+        },
+        theme: {
+          color: "#3B82F6"
+        }
+      };
+
+      // Load Razorpay script if not already loaded
+      if (!(window as any).Razorpay) {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => {
+          const rzp = new (window as any).Razorpay(options);
+          rzp.open();
+        };
+        document.body.appendChild(script);
+      } else {
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      }
+
+    } catch (error: any) {
+      console.error("❌ Booking error:", error);
+      alert(error.message || "Something went wrong while creating booking");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main Steps */}
-      <div className="lg:col-span-2">
-        <Tabs defaultValue="device">
-          <TabsList className="mb-4">
-            <TabsTrigger value="device">Device</TabsTrigger>
-            <TabsTrigger value="services">Services</TabsTrigger>
-            <TabsTrigger value="shop">Shop</TabsTrigger>
-            <TabsTrigger value="customer">Customer Info</TabsTrigger>
-            <TabsTrigger value="review">Review</TabsTrigger>
-          </TabsList>
+    <div className="min-h-screen bg-background">
+      <Header cartItems={getTotalItems()} />
 
-          <TabsContent value="device">
-            <Card>
-              <CardContent className="p-4">
-                <h2 className="text-lg font-semibold mb-2">Select Device</h2>
-                {/* Replace with dropdowns / selectors */}
-                <Input
-                  placeholder="Device Brand"
-                  onChange={(e) =>
-                    setSelectedDevice({
-                      ...selectedDevice,
-                      brand: e.target.value,
-                    })
-                  }
-                  className="mb-2"
-                />
-                <Input
-                  placeholder="Device Model"
-                  onChange={(e) =>
-                    setSelectedDevice({
-                      ...selectedDevice,
-                      model: e.target.value,
-                    })
-                  }
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Connect with Expert Technicians</h1>
+          <p className="text-muted-foreground">
+            Find local mobile repair experts in Pune. Get your device fixed by certified technicians.
+          </p>
+        </div>
 
-          <TabsContent value="services">
-            <Card>
-              <CardContent className="p-4">
-                <h2 className="text-lg font-semibold mb-2">Select Services</h2>
-                {/* Replace with dynamic service list */}
-                <Button
-                  onClick={() =>
-                    setCart([...cart, { id: "screen", name: "Screen Repair", price: 2000, quantity: 1 }])
-                  }
-                >
-                  Add Screen Repair
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="device">1. Device</TabsTrigger>
+                <TabsTrigger value="services" disabled={!selectedDevice}>2. Services</TabsTrigger>
+                <TabsTrigger value="area" disabled={cart.length === 0}>3. Select Shop</TabsTrigger>
+                <TabsTrigger value="details" disabled={!selectedShop}>4. Details</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="shop">
-            <Card>
-              <CardContent className="p-4">
-                <h2 className="text-lg font-semibold mb-2">Select Shop</h2>
-                <Button
-                  onClick={() => setSelectedShop({ id: "shop123", name: "Repair Hub" })}
-                >
-                  Choose Repair Hub
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <TabsContent value="device" className="space-y-6">
+                <MobileSelector onSelect={handleDeviceSelect} />
+              </TabsContent>
 
-          <TabsContent value="customer">
-            <Card>
-              <CardContent className="p-4">
-                <h2 className="text-lg font-semibold mb-2">Your Details</h2>
-                <Input
-                  placeholder="Name"
-                  className="mb-2"
-                  onChange={(e) =>
-                    setCustomerInfo({ ...customerInfo, name: e.target.value })
-                  }
+              <TabsContent value="services" className="space-y-6">
+                {selectedDevice && (
+                  <SelectedDevice
+                    device={selectedDevice}
+                    onChangeDevice={() => setActiveTab("device")}
+                  />
+                )}
+                <ServicesSelector
+                  onAddToCart={handleServiceAdd}
+                  onProceedToDetails={() => setActiveTab("area")}
+                  hasItemsInCart={cart.length > 0}
                 />
-                <Input
-                  placeholder="Phone"
-                  className="mb-2"
-                  onChange={(e) =>
-                    setCustomerInfo({ ...customerInfo, phone: e.target.value })
-                  }
-                />
-                <Input
-                  placeholder="Email"
-                  className="mb-2"
-                  onChange={(e) =>
-                    setCustomerInfo({ ...customerInfo, email: e.target.value })
-                  }
-                />
-                <Input
-                  placeholder="Address"
-                  className="mb-2"
-                  onChange={(e) =>
-                    setCustomerInfo({ ...customerInfo, address: e.target.value })
-                  }
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="review">
-            <Card>
-              <CardContent className="p-4">
-                <h2 className="text-lg font-semibold mb-4">Review & Confirm</h2>
-                <p><b>Device:</b> {selectedDevice?.brand} {selectedDevice?.model}</p>
-                <p><b>Shop:</b> {selectedShop?.name}</p>
-                <p><b>Total:</b> ₹{getTotalPrice()}</p>
-                <Button
-                  className="mt-4 w-full"
-                  disabled={isSubmitting}
-                  onClick={handleBooking}
-                >
-                  {isSubmitting ? "Booking..." : "Confirm Booking"}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+              <TabsContent value="area" className="space-y-6">
+                <AreaSearch onShopSelect={handleShopSelect} />
+              </TabsContent>
 
-      {/* Cart Sidebar */}
-      <div>
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-lg font-semibold mb-2">Your Cart</h2>
-            {cart.length === 0 ? (
-              <p className="text-gray-500">No services added yet.</p>
-            ) : (
-              <ul className="mb-4">
-                {cart.map((item, idx) => (
-                  <li key={idx} className="flex justify-between mb-2">
-                    <span>
-                      {item.name} x{item.quantity || 1}
-                    </span>
-                    <span>₹{item.price}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="font-semibold">Total: ₹{getTotalPrice()}</p>
-          </CardContent>
-        </Card>
+              <TabsContent value="details" className="space-y-6">
+                <CustomerDetails
+                  customerInfo={customerInfo}
+                  onUpdate={updateCustomerInfo}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Cart Sidebar */}
+          <div className="lg:col-span-1">
+            <BookingCart
+              cart={cart}
+              totalItems={getTotalItems()}
+              totalPrice={getTotalPrice()}
+              selectedDevice={selectedDevice}
+              selectedShop={selectedShop}
+              onRemoveFromCart={handleServiceRemove}
+              onBooking={handleBooking}
+              isSubmitting={isSubmitting}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default BookRepairPage;
