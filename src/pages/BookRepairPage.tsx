@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MobileSelector } from '@/components/MobileSelector';
 import { ServicesSelector } from '@/components/booking/ServicesSelector';
 import AreaSearch from '@/components/booking/AreaSearch';
-import { CustomerDetails } from '@/components/booking/CustomerDetails';
+import CustomerDetails from '@/components/booking/CustomerDetails';
 import BookingCart from '@/components/booking/BookingCart';
 import { SelectedDevice } from '@/components/booking/SelectedDevice';
 import { TechnicianSuggestions } from '@/components/booking/TechnicianSuggestions';
