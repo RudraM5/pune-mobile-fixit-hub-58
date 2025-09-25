@@ -222,9 +222,11 @@ export async function createBooking(data: BookingData) {
 
     return { bookingId };
   } catch (error: any) {
-    if (error.name === "ZodError") {
-      throw new Error("Validation failed: " + error.errors[0].message);
-    }
+    if (error.name === 'ZodError') {
+  console.error('Zod Validation Errors:', error.errors);
+  throw new Error('Validation failed: ' + error.errors.map((e: any) => e.message).join(', '));
+}
+
     throw new Error(handleSupabaseError(error));
   }
 }
