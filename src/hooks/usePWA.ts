@@ -80,6 +80,12 @@ export function usePWA() {
   }, []);
 
   const registerServiceWorker = async () => {
+    // Only register service worker in production environment
+    if (!import.meta.env.PROD) {
+      console.log('PWA: Service Worker registration skipped in development');
+      return;
+    }
+
     try {
       const registration = await navigator.serviceWorker.register('/sw.js');
       console.log('PWA: Service Worker registered successfully', registration);

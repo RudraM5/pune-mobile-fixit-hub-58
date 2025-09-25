@@ -18,7 +18,7 @@ interface MobileDevice {
 }
 
 interface MobileSelectorProps {
-  onSelect: (device: MobileDevice) => void;
+  onDeviceSelect: (device: MobileDevice) => void;
 }
 
 // Comprehensive mobile device database covering all major brands and models
@@ -260,7 +260,7 @@ const MobileSelector = ({ onSelect }: MobileSelectorProps) => {
     });
 
     // Auto-select the newly added device
-    onSelect(newDevice);
+    onDeviceSelect(newDevice);
   };
 
   return (
@@ -304,7 +304,7 @@ const MobileSelector = ({ onSelect }: MobileSelectorProps) => {
             <h3 className="text-lg font-semibold mb-3 text-primary">Popular Devices</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {popularDevices.map(device => (
-                <Card key={device.id} className="cursor-pointer transition-all hover:shadow-md hover:scale-105" onClick={() => onSelect(device)}>
+                <Card key={device.id} className="cursor-pointer transition-all hover:shadow-md hover:scale-105" onClick={() => onDeviceSelect(device)}>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -325,7 +325,7 @@ const MobileSelector = ({ onSelect }: MobileSelectorProps) => {
             <h3 className="text-lg font-semibold mb-3">Other Devices</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {otherDevices.map(device => (
-                <Card key={device.id} className="cursor-pointer transition-all hover:shadow-md hover:scale-105" onClick={() => onSelect(device)}>
+                <Card key={device.id} className="cursor-pointer transition-all hover:shadow-md hover:scale-105" onClick={() => onDeviceSelect(device)}>
                   <CardContent className="p-4">
                     <div>
                       <p className="font-medium">{device.brand}</p>
