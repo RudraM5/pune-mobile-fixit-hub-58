@@ -67,54 +67,37 @@ const BookRepairPage = () => {
 
   const handleBooking = async () => {
     if (!selectedDevice || cart.length === 0) {
-      alert("Please select a device and add services to the cart.");
+      alert("Please select a device and add services to cart");
       return;
     }
 
     if (!selectedShop) {
-      alert("Please select a shop to proceed.");
+      alert("Please select a shop to proceed");
       return;
     }
 
     if (!isCustomerInfoValid()) {
-      alert("Please fill in all required contact details.");
+      alert("Please fill in your contact details");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // ✅ FIX: Use optional chaining (?.) to prevent crashes if selectedDevice or selectedShop are null.
-      const bookingPayload = {
-        // Customer Info
-        customer_name: customerInfo.name,
-        customer_phone: customerInfo.phone,
-        customer_email: customerInfo.email,
-        customer_address: customerInfo.address || null,
-
-        // Device Info
-        device_brand: selectedDevice?.brand,
-        device_model: selectedDevice?.model,
-
-        // Booking Details
-        issue_description: customerInfo.description || "",
-        total_amount: getTotalPrice(),
-        shop_id: selectedShop?.id,
-        pickup_preferred: customerInfo.pickupPreferred || false,
-        user_id: user ? user.id : null,
-
-        // Pass services separately for the backend to process
-        services: cart.map(item => ({
-          service_id: item.id,
-          quantity: item.quantity || 1,
-          unit_price: item.price
-        }))
+      const bookingData = {
+        customer: customerInfo,
+        device: selectedDevice,
+        services: cart,
+        shopId: selectedShop.id,
+        totalAmount: getTotalPrice(),
+        pickupPreferred: customerInfo.pickupPreferred || false,
+        description: customerInfo.description || "",
       };
 
-      const data = await createBooking(bookingPayload);
+      const data = await createBooking(bookingData);
       console.log("✅ Booking created:", data);
 
-      // --- The rest of your payment logic remains the same ---
+      // Create Razorpay order
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-razorpay-order', {
         body: {
@@ -130,7 +113,8 @@ const BookRepairPage = () => {
         alert("Booking created but payment setup failed. Please contact support.");
         return;
       }
-      
+
+      // Initialize Razorpay payment
       const options = {
         key: paymentData.key_id,
         amount: paymentData.order.amount,
@@ -155,6 +139,7 @@ const BookRepairPage = () => {
         }
       };
 
+      // Load Razorpay script if not already loaded
       if (!(window as any).Razorpay) {
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -169,8 +154,8 @@ const BookRepairPage = () => {
       }
 
     } catch (error: any) {
-      console.error("❌ Booking submission error:", error);
-      alert("Failed to create booking: " + error.message);
+      console.error("❌ Booking error:", error);
+      alert(error.message || "Something went wrong while creating booking");
     } finally {
       setIsSubmitting(false);
     }
@@ -189,6 +174,7 @@ const BookRepairPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-4">
@@ -197,9 +183,11 @@ const BookRepairPage = () => {
                 <TabsTrigger value="area" disabled={cart.length === 0}>3. Select Shop</TabsTrigger>
                 <TabsTrigger value="details" disabled={!selectedShop}>4. Details</TabsTrigger>
               </TabsList>
+
               <TabsContent value="device" className="space-y-6">
                 <MobileSelector onSelect={handleDeviceSelect} />
               </TabsContent>
+
               <TabsContent value="services" className="space-y-6">
                 {selectedDevice && (
                   <SelectedDevice
@@ -213,9 +201,11 @@ const BookRepairPage = () => {
                   hasItemsInCart={cart.length > 0}
                 />
               </TabsContent>
+
               <TabsContent value="area" className="space-y-6">
                 <AreaSearch onShopSelect={handleShopSelect} />
               </TabsContent>
+
               <TabsContent value="details" className="space-y-6">
                 <CustomerDetails
                   customerInfo={customerInfo}
@@ -224,6 +214,8 @@ const BookRepairPage = () => {
               </TabsContent>
             </Tabs>
           </div>
+
+          {/* Cart Sidebar */}
           <div className="lg:col-span-1">
             <BookingCart
               cart={cart}
