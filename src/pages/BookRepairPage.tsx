@@ -84,7 +84,7 @@ const BookRepairPage = () => {
     setIsSubmitting(true);
 
     try {
-      // ✅ FIX: Create a flat payload object that matches your 'repair_requests' table schema
+      // Create a flat payload object that matches your 'repair_requests' table schema
       const bookingPayload = {
         // Customer Info
         customer_name: customerInfo.name,
@@ -111,13 +111,10 @@ const BookRepairPage = () => {
         }))
       };
 
-      // The createBooking function now receives the correctly structured data
       const data = await createBooking(bookingPayload);
       console.log("✅ Booking created:", data);
 
       // --- The rest of your payment logic remains the same ---
-
-      // Create Razorpay order
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-razorpay-order', {
         body: {
@@ -133,8 +130,7 @@ const BookRepairPage = () => {
         alert("Booking created but payment setup failed. Please contact support.");
         return;
       }
-
-      // Initialize Razorpay payment
+      
       const options = {
         key: paymentData.key_id,
         amount: paymentData.order.amount,
@@ -159,7 +155,6 @@ const BookRepairPage = () => {
         }
       };
 
-      // Load Razorpay script if not already loaded
       if (!(window as any).Razorpay) {
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -194,7 +189,6 @@ const BookRepairPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-4">
@@ -203,11 +197,9 @@ const BookRepairPage = () => {
                 <TabsTrigger value="area" disabled={cart.length === 0}>3. Select Shop</TabsTrigger>
                 <TabsTrigger value="details" disabled={!selectedShop}>4. Details</TabsTrigger>
               </TabsList>
-
               <TabsContent value="device" className="space-y-6">
                 <MobileSelector onSelect={handleDeviceSelect} />
               </TabsContent>
-
               <TabsContent value="services" className="space-y-6">
                 {selectedDevice && (
                   <SelectedDevice
@@ -221,11 +213,9 @@ const BookRepairPage = () => {
                   hasItemsInCart={cart.length > 0}
                 />
               </TabsContent>
-
               <TabsContent value="area" className="space-y-6">
                 <AreaSearch onShopSelect={handleShopSelect} />
               </TabsContent>
-
               <TabsContent value="details" className="space-y-6">
                 <CustomerDetails
                   customerInfo={customerInfo}
@@ -234,8 +224,6 @@ const BookRepairPage = () => {
               </TabsContent>
             </Tabs>
           </div>
-
-          {/* Cart Sidebar */}
           <div className="lg:col-span-1">
             <BookingCart
               cart={cart}
