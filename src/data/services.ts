@@ -31,3 +31,4 @@ export const serviceCategories = [
   { id: "advanced", name: "Advanced Repairs", description: "Complex technical repairs" },
   { id: "accessories", name: "Accessories", description: "Protective accessories" },
   { id: "premium", name: "Premium Services", description: "Special services" }
+]
