@@ -1,5 +1,5 @@
 // src/lib/api.ts
-// Supabase-only API with validation fixes: auto number conversion, empty string → null, better logging.
+// Supabase-only API with validation fixes: safe number conversion, empty string → null, recomputed totals.
 
 import { z } from "zod";
 
@@ -39,46 +39,31 @@ export interface BookingData {
 }
 
 // Zod schema
-const bookingValidationSchema = z
-  .object({
-    customer: z.object({
-      name: z.string().min(1, "Customer name is required"),
-      phone: z.string().min(10, "Valid phone number is required"),
-      email: z.string().email("Invalid email").optional().nullable(),
-      address: z.string().optional().nullable(),
-      pickupPreferred: z.boolean().optional().default(false),
-      description: z.string().optional().nullable(),
-    }),
-    device: z.object({
-      brand: z.string().min(1, "Device brand is required"),
-      model: z.string().min(1, "Device model is required"),
-    }),
-    services: z
-      .array(
-        z.object({
-          id: z.union([z.string(), z.number()]),
-          name: z.string().min(1),
-          price: z.coerce.number().positive("Price must be positive"),
-          quantity: z.coerce.number().int().min(1).default(1),
-        })
-      )
-      .min(1, "At least one service must be selected"),
-    shopId: z.coerce.number(),
-    totalAmount: z.coerce.number().positive("Total must be > 0"),
-    userId: z.string().optional().nullable(),
-  })
-  .transform((validatedData) => {
-    // Compute total for safety
-    const computedTotal = validatedData.services.reduce((sum, s) => {
-      return sum + s.price * s.quantity;
-    }, 0);
-
-    if (Math.abs(computedTotal - validatedData.totalAmount) > 0.01) {
-      throw new Error("Total amount does not match selected services");
-    }
-
-    return validatedData;
-  });
+const bookingValidationSchema = z.object({
+  customer: z.object({
+    name: z.string().min(1, "Customer name is required"),
+    phone: z.string().min(10, "Valid phone number is required"),
+    email: z.string().email("Invalid email").optional().nullable(),
+    address: z.string().optional().nullable(),
+    pickupPreferred: z.boolean().optional().default(false),
+    description: z.string().optional().nullable(),
+  }),
+  device: z.object({
+    brand: z.string().min(1, "Device brand is required"),
+    model: z.string().min(1, "Device model is required"),
+  }),
+  services: z.array(
+    z.object({
+      id: z.union([z.string(), z.number()]),
+      name: z.string().min(1),
+      price: z.number().nonnegative(),
+      quantity: z.number().int().min(1),
+    })
+  ).min(1, "At least one service must be selected"),
+  shopId: z.number().int().positive("Shop ID is required"),
+  totalAmount: z.number().nonnegative(),
+  userId: z.string().optional().nullable(),
+});
 
 // Error handler
 export function handleSupabaseError(err: any): string {
@@ -135,7 +120,7 @@ export async function createBooking(rawData: BookingData) {
   const supabase = await getSupabaseClient();
 
   try {
-    // Clean up payload (convert empty strings → null)
+    // Clean + normalize payload
     const cleaned: BookingData = {
       ...rawData,
       customer: {
@@ -146,11 +131,20 @@ export async function createBooking(rawData: BookingData) {
       },
       services: rawData.services.map((s) => ({
         ...s,
-        price: Number(s.price),
-        quantity: Number(s.quantity ?? 1),
+        price: isNaN(Number(s.price)) ? 0 : Number(s.price),
+        quantity: isNaN(Number(s.quantity)) ? 1 : Number(s.quantity),
       })),
-      shopId: Number(rawData.shopId),
-      totalAmount: Number(rawData.totalAmount),
+      shopId: isNaN(Number(rawData.shopId))
+        ? (() => {
+            throw new Error("Shop ID is required and must be a number");
+          })()
+        : Number(rawData.shopId),
+      // Always recompute total from services
+      totalAmount: rawData.services.reduce((sum, s) => {
+        const price = isNaN(Number(s.price)) ? 0 : Number(s.price);
+        const qty = isNaN(Number(s.quantity)) ? 1 : Number(s.quantity);
+        return sum + price * qty;
+      }, 0),
     };
 
     console.log("Booking payload before validation:", cleaned);
@@ -211,7 +205,7 @@ export async function createBooking(rawData: BookingData) {
       }
     }
 
-    // Clear cart
+    // Clear cart if logged in
     if (validatedData.userId) {
       await supabase.from("cart_items").delete().eq("user_id", validatedData.userId);
     }
