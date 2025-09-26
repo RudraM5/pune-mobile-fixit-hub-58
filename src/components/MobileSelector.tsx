@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getMobileDevices, addMobileDevice } from "@/lib/supabase";
 
 interface MobileDevice {
   id: string;
@@ -215,10 +216,33 @@ const MobileSelector = ({ onSelect }: MobileSelectorProps) => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
-  const [mobileDatabase, setMobileDatabase] = useState<MobileDevice[]>(initialMobileDatabase);
+  const [mobileDatabase, setMobileDatabase] = useState<MobileDevice[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newDeviceBrand, setNewDeviceBrand] = useState("");
   const [newDeviceModel, setNewDeviceModel] = useState("");
+
+  useEffect(() => {
+    const fetchDevices = async () => {
+      try {
+        const devices = await getMobileDevices();
+        const transformedDevices = devices.map(device => ({
+          id: device.id,
+          brand: device.brand,
+          model: device.model,
+          popular: ['iPhone 15 Pro', 'iPhone 15', 'Galaxy S24', 'OnePlus 12', 'Xiaomi 14'].includes(device.model)
+        }));
+        setMobileDatabase([...transformedDevices, ...initialMobileDatabase]);
+      } catch (error) {
+        console.error('Error fetching devices:', error);
+        setMobileDatabase(initialMobileDatabase);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDevices();
+  }, []);
 
   const brands = Array.from(new Set(mobileDatabase.map(device => device.brand)));
   
@@ -242,26 +266,56 @@ const MobileSelector = ({ onSelect }: MobileSelectorProps) => {
       return;
     }
 
-    const newDevice: MobileDevice = {
-      id: `custom-${Date.now()}`,
-      brand: newDeviceBrand.trim(),
-      model: newDeviceModel.trim(),
-      popular: false
+    const addDevice = async () => {
+      try {
+        const newDevice = await addMobileDevice(newDeviceBrand.trim(), newDeviceModel.trim());
+        const transformedDevice: MobileDevice = {
+          id: newDevice.id,
+          brand: newDevice.brand,
+          model: newDevice.model,
+          popular: false
+        };
+
+        setMobileDatabase(prev => [...prev, transformedDevice]);
+        setIsAddDialogOpen(false);
+        setNewDeviceBrand("");
+        setNewDeviceModel("");
+        
+        toast({
+          title: "Device added successfully",
+          description: `${transformedDevice.brand} ${transformedDevice.model} has been added to the database`,
+        });
+
+        // Auto-select the newly added device
+        onDeviceSelect(transformedDevice);
+      } catch (error) {
+        toast({
+          title: "Error adding device",
+          description: "Failed to add device to database",
+          variant: "destructive"
+        });
+      }
     };
 
-    setMobileDatabase(prev => [...prev, newDevice]);
-    setIsAddDialogOpen(false);
-    setNewDeviceBrand("");
-    setNewDeviceModel("");
-    
-    toast({
-      title: "Device added successfully",
-      description: `${newDevice.brand} ${newDevice.model} has been added to the database`,
-    });
-
-    // Auto-select the newly added device
-    onSelect(newDevice);
+    addDevice();
   };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Devices...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-16 bg-muted animate-pulse rounded"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

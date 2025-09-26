@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/layout/Header";
+import { submitContactForm } from "@/lib/supabase";
 
 const ContactPage = () => {
   const { toast } = useToast();
@@ -17,42 +18,28 @@ const ContactPage = () => {
 
     const formData = new FormData(e.currentTarget);
 
-    // ✅ Prepare payload as per backend
     const payload = {
       name: `${formData.get("firstName")} ${formData.get("lastName")}`.trim(),
       email: formData.get("email") as string,
-      phone: formData.get("phone") as string,
       message: `
 Subject: ${formData.get("subject")}
+Phone: ${formData.get("phone")}
 Device: ${formData.get("device")}
 Message: ${formData.get("message")}
       `.trim(),
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/contacts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      await submitContactForm(payload);
+      toast({
+        title: "Message Sent",
+        description: "We'll get back to you shortly.",
       });
-
-      if (res.ok) {
-        toast({
-          title: "Message Sent",
-          description: "We’ll get back to you shortly.",
-        });
-        (e.target as HTMLFormElement).reset();
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to send message. Please try again.",
-          variant: "destructive",
-        });
-      }
+      (e.target as HTMLFormElement).reset();
     } catch (err) {
       toast({
         title: "Error",
-        description: "Something went wrong. Please try later.",
+        description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
     } finally {

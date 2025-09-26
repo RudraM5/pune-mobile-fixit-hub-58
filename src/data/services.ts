@@ -1,6 +1,8 @@
 import { Service } from "@/types/booking";
+import { getServices, getServiceCategories } from "@/lib/supabase";
 
-export const services: Service[] = [
+// Static fallback data
+export const staticServices: Service[] = [
   // Basic Repairs
   { id: "1", name: "Screen Replacement", description: "High-quality OLED/LCD display replacement", price: 1500, duration: "30 mins", category: "basic" },
   { id: "2", name: "Battery Replacement", description: "Original capacity battery replacement", price: 1200, duration: "20 mins", category: "basic" },
@@ -29,4 +31,3 @@ export const serviceCategories = [
   { id: "advanced", name: "Advanced Repairs", description: "Complex technical repairs" },
   { id: "accessories", name: "Accessories", description: "Protective accessories" },
   { id: "premium", name: "Premium Services", description: "Special services" }
-];
