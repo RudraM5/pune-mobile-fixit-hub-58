@@ -84,7 +84,7 @@ const BookRepairPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Create a flat payload object that matches your 'repair_requests' table schema
+      // ✅ FIX: Use optional chaining (?.) to prevent crashes if selectedDevice or selectedShop are null.
       const bookingPayload = {
         // Customer Info
         customer_name: customerInfo.name,
@@ -93,13 +93,13 @@ const BookRepairPage = () => {
         customer_address: customerInfo.address || null,
 
         // Device Info
-        device_brand: selectedDevice.brand,
-        device_model: selectedDevice.model,
+        device_brand: selectedDevice?.brand,
+        device_model: selectedDevice?.model,
 
         // Booking Details
         issue_description: customerInfo.description || "",
         total_amount: getTotalPrice(),
-        shop_id: selectedShop.id,
+        shop_id: selectedShop?.id,
         pickup_preferred: customerInfo.pickupPreferred || false,
         user_id: user ? user.id : null,
 
