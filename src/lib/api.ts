@@ -1,10 +1,9 @@
 // src/lib/api.ts
-// Supabase-only API: Handles bookings, services, shops, and contacts with bigint IDs.
-// No Render dependency, aligned to your Supabase schema.
+// Supabase-only API with validation fixes: auto number conversion, empty string → null, better logging.
 
 import { z } from "zod";
 
-// Lazy Supabase import (Lovable/React integration)
+// Supabase client initialization
 let supabase: any;
 async function getSupabaseClient() {
   if (!supabase) {
@@ -14,7 +13,7 @@ async function getSupabaseClient() {
   return supabase;
 }
 
-// ----------------- Types -----------------
+// Types
 export interface BookingData {
   customer: {
     name: string;
@@ -29,49 +28,49 @@ export interface BookingData {
     model: string;
   };
   services: Array<{
-    id: number; // bigint from Supabase
+    id: string | number;
     name: string;
-    price: number;
-    quantity?: number;
+    price: number | string;
+    quantity?: number | string;
   }>;
-  shopId: number; // bigint from Supabase
-  totalAmount: number;
-  userId?: string | null; // UUID if logged in
+  shopId: string | number;
+  totalAmount: number | string;
+  userId?: string | null;
 }
 
-// ----------------- Validation -----------------
+// Zod schema
 const bookingValidationSchema = z
   .object({
     customer: z.object({
       name: z.string().min(1, "Customer name is required"),
       phone: z.string().min(10, "Valid phone number is required"),
-      email: z.string().email("Invalid email").optional(),
-      address: z.string().optional(),
+      email: z.string().email("Invalid email").optional().nullable(),
+      address: z.string().optional().nullable(),
       pickupPreferred: z.boolean().optional().default(false),
-      description: z.string().optional(),
+      description: z.string().optional().nullable(),
     }),
     device: z.object({
-      brand: z.string().min(1, "Device brand (e.g., Apple) is required"),
-      model: z.string().min(1, "Device model (e.g., iPhone 14) is required"),
+      brand: z.string().min(1, "Device brand is required"),
+      model: z.string().min(1, "Device model is required"),
     }),
     services: z
       .array(
         z.object({
-          id: z.number(), // bigint, required
+          id: z.union([z.string(), z.number()]),
           name: z.string().min(1),
-          price: z.number().positive("Service price must be positive"),
-          quantity: z.number().int().min(1).default(1),
+          price: z.coerce.number().positive("Price must be positive"),
+          quantity: z.coerce.number().int().min(1).default(1),
         })
       )
       .min(1, "At least one service must be selected"),
-    shopId: z.number(), // bigint
-    totalAmount: z.number().positive("Total amount must be greater than 0"),
-    userId: z.string().uuid().optional().or(z.null()),
+    shopId: z.coerce.number(),
+    totalAmount: z.coerce.number().positive("Total must be > 0"),
+    userId: z.string().optional().nullable(),
   })
   .transform((validatedData) => {
-    // Check computed total vs provided total
-    const computedTotal = validatedData.services.reduce((sum, service) => {
-      return sum + service.price * service.quantity;
+    // Compute total for safety
+    const computedTotal = validatedData.services.reduce((sum, s) => {
+      return sum + s.price * s.quantity;
     }, 0);
 
     if (Math.abs(computedTotal - validatedData.totalAmount) > 0.01) {
@@ -81,50 +80,31 @@ const bookingValidationSchema = z
     return validatedData;
   });
 
-// ----------------- Error Handler -----------------
+// Error handler
 export function handleSupabaseError(err: any): string {
-  console.error("Supabase Error Details:", {
-    code: err.code,
-    message: err.message,
-    details: err.details,
-    hint: err.hint,
-  });
-
-  let userMessage = err.message || "Unexpected error during operation.";
-
+  console.error("Supabase Error:", err);
+  let userMessage = err.message || "Unexpected error occurred.";
   switch (err.code) {
-    case "23502": // not null violation
-      userMessage =
-        "Missing required information. Please check all required fields.";
+    case "23502":
+      userMessage = "Missing required information.";
       break;
-    case "42501": // RLS
-      userMessage = "Permission denied. Please log in and try again.";
+    case "42501":
+      userMessage = "Permission denied.";
       break;
-    case "23503": // foreign key
-      userMessage = "Invalid shop or service. Please select valid options.";
+    case "23503":
+      userMessage = "Invalid selection (shop or service not found).";
       break;
-    case "22P02": // invalid data type
-      userMessage = "Invalid data format. Please verify your selections.";
+    case "22P02":
+      userMessage = "Invalid data format.";
       break;
-    case "P0001": // custom constraint
-      userMessage = "Booking validation failed. Please review your booking.";
+    case "P0001":
+      userMessage = "Booking validation failed.";
       break;
-    case "400":
-      userMessage = "Invalid form data. Please fill all required fields.";
-      break;
-    default:
-      if (err.message?.includes("total_amount")) {
-        userMessage =
-          "Total amount mismatch. Please recheck selected services.";
-      }
   }
-
   return userMessage;
 }
 
-// ----------------- API Functions -----------------
-
-// Get active services
+// Get services
 export async function getServices() {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase
@@ -137,14 +117,12 @@ export async function getServices() {
   return data || [];
 }
 
-// Get active shops
+// Get shops
 export async function getShops() {
   const supabase = await getSupabaseClient();
   const { data, error } = await supabase
     .from("shops")
-    .select(
-      "id, name, address, phone, rating, is_active, location_lat, location_lng"
-    )
+    .select("id, name, address, phone, rating, is_active, location_lat, location_lng")
     .eq("is_active", true)
     .order("rating", { ascending: false });
 
@@ -152,22 +130,41 @@ export async function getShops() {
   return data || [];
 }
 
-// Create booking (direct insert into repair_requests & repair_request_services)
-export async function createBooking(data: BookingData) {
+// Create booking
+export async function createBooking(rawData: BookingData) {
   const supabase = await getSupabaseClient();
 
   try {
-    const validatedData = bookingValidationSchema.parse(data);
+    // Clean up payload (convert empty strings → null)
+    const cleaned: BookingData = {
+      ...rawData,
+      customer: {
+        ...rawData.customer,
+        email: rawData.customer.email?.trim() || null,
+        address: rawData.customer.address?.trim() || null,
+        description: rawData.customer.description?.trim() || null,
+      },
+      services: rawData.services.map((s) => ({
+        ...s,
+        price: Number(s.price),
+        quantity: Number(s.quantity ?? 1),
+      })),
+      shopId: Number(rawData.shopId),
+      totalAmount: Number(rawData.totalAmount),
+    };
 
-    // 1. Insert main booking
+    console.log("Booking payload before validation:", cleaned);
+
+    const validatedData = bookingValidationSchema.parse(cleaned);
+
     const mainPayload = {
       customer_name: validatedData.customer.name,
       customer_phone: validatedData.customer.phone,
-      customer_email: validatedData.customer.email || null,
-      customer_address: validatedData.customer.address || null,
+      customer_email: validatedData.customer.email,
+      customer_address: validatedData.customer.address,
       device_brand: validatedData.device.brand,
       device_model: validatedData.device.model,
-      issue_description: validatedData.customer.description || null,
+      issue_description: validatedData.customer.description,
       total_amount: validatedData.totalAmount,
       user_id: validatedData.userId || null,
       status: "pending",
@@ -194,14 +191,14 @@ export async function createBooking(data: BookingData) {
 
     const bookingId = requestData.id;
 
-    // 2. Insert services
-    if (validatedData.services.length > 0) {
-      const serviceInserts = validatedData.services.map((service) => ({
+    // Insert services
+    if (validatedData.services?.length > 0) {
+      const serviceInserts = validatedData.services.map((s) => ({
         repair_request_id: bookingId,
-        service_id: service.id,
-        quantity: service.quantity,
-        unit_price: service.price,
-        total_price: service.price * service.quantity,
+        service_id: s.id,
+        quantity: s.quantity,
+        unit_price: s.price,
+        total_price: s.price * s.quantity,
       }));
 
       const { error: serviceError } = await supabase
@@ -209,45 +206,34 @@ export async function createBooking(data: BookingData) {
         .insert(serviceInserts);
 
       if (serviceError) {
-        // Rollback
         await supabase.from("repair_requests").delete().eq("id", bookingId);
         throw serviceError;
       }
     }
 
-    // 3. Optional: Clear cart
+    // Clear cart
     if (validatedData.userId) {
       await supabase.from("cart_items").delete().eq("user_id", validatedData.userId);
     }
 
     return { bookingId };
   } catch (error: any) {
-    if (error.name === 'ZodError') {
-  console.error('Zod Validation Errors:', error.errors);
-  throw new Error('Validation failed: ' + error.errors.map((e: any) => e.message).join(', '));
-}
-
+    if (error.name === "ZodError") {
+      console.error("Validation failed:", error.errors);
+      throw new Error(
+        "Validation failed: " + error.errors.map((e: any) => e.message).join(", ")
+      );
+    }
     throw new Error(handleSupabaseError(error));
   }
 }
 
-// Save contact form
-export async function contactUs(data: {
-  name: string;
-  email: string;
-  message: string;
-}) {
+// Contact form
+export async function contactUs(data: any) {
   const supabase = await getSupabaseClient();
-
   const { data: contactData, error } = await supabase
     .from("contacts")
-    .insert([
-      {
-        name: data.name,
-        email: data.email,
-        message: data.message,
-      },
-    ])
+    .insert([{ name: data.name, email: data.email, message: data.message }])
     .select("id")
     .single();
 
