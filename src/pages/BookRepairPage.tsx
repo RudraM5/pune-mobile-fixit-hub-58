@@ -67,35 +67,55 @@ const BookRepairPage = () => {
 
   const handleBooking = async () => {
     if (!selectedDevice || cart.length === 0) {
-      alert("Please select a device and add services to cart");
+      alert("Please select a device and add services to the cart.");
       return;
     }
 
     if (!selectedShop) {
-      alert("Please select a shop to proceed");
+      alert("Please select a shop to proceed.");
       return;
     }
 
     if (!isCustomerInfoValid()) {
-      alert("Please fill in your contact details");
+      alert("Please fill in all required contact details.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const bookingData = {
-        customer: customerInfo,
-        device: selectedDevice,
-        services: cart,
-        shopId: selectedShop.id,
-        totalAmount: getTotalPrice(),
-        pickupPreferred: customerInfo.pickupPreferred || false,
-        description: customerInfo.description || "",
+      // ✅ FIX: Create a flat payload object that matches your 'repair_requests' table schema
+      const bookingPayload = {
+        // Customer Info
+        customer_name: customerInfo.name,
+        customer_phone: customerInfo.phone,
+        customer_email: customerInfo.email,
+        customer_address: customerInfo.address || null,
+
+        // Device Info
+        device_brand: selectedDevice.brand,
+        device_model: selectedDevice.model,
+
+        // Booking Details
+        issue_description: customerInfo.description || "",
+        total_amount: getTotalPrice(),
+        shop_id: selectedShop.id,
+        pickup_preferred: customerInfo.pickupPreferred || false,
+        user_id: user ? user.id : null,
+
+        // Pass services separately for the backend to process
+        services: cart.map(item => ({
+          service_id: item.id,
+          quantity: item.quantity || 1,
+          unit_price: item.price
+        }))
       };
 
-      const data = await createBooking(bookingData);
+      // The createBooking function now receives the correctly structured data
+      const data = await createBooking(bookingPayload);
       console.log("✅ Booking created:", data);
+
+      // --- The rest of your payment logic remains the same ---
 
       // Create Razorpay order
       const { supabase } = await import("@/integrations/supabase/client");
@@ -154,8 +174,8 @@ const BookRepairPage = () => {
       }
 
     } catch (error: any) {
-      console.error("❌ Booking error:", error);
-      alert(error.message || "Something went wrong while creating booking");
+      console.error("❌ Booking submission error:", error);
+      alert("Failed to create booking: " + error.message);
     } finally {
       setIsSubmitting(false);
     }
