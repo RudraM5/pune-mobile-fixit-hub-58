@@ -13,31 +13,19 @@ import { useCustomerInfo } from "@/hooks/useCustomerInfo";
 import { useAuth } from "@/contexts/AuthContext";
 import { MobileDevice, Service } from "@/types/booking";
 import { createBooking } from "@/lib/api";
+import { z } from "zod";
 
 const BookRepairPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedDevice, setSelectedDevice] = useState<MobileDevice | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-  const [selectedShop, setSelectedShop] = useState<any>(null);
+  const [selectedShop, setSelectedShop] = useState<{ id: string; name: string; [key: string]: any } | null>(null);
   const [activeTab, setActiveTab] = useState("device");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    cart,
-    addToCart,
-    removeFromCart,
-    getTotalPrice,
-    getTotalItems,
-    clearCart
-  } = useCart();
-
-  const {
-    customerInfo,
-    updateCustomerInfo,
-    resetCustomerInfo,
-    isValid: isCustomerInfoValid
-  } = useCustomerInfo();
+  const { cart, addToCart, removeFromCart, getTotalPrice, getTotalItems, clearCart } = useCart();
+  const { customerInfo, updateCustomerInfo, resetCustomerInfo, isValid: isCustomerInfoValid } = useCustomerInfo();
 
   const handleDeviceSelect = (device: MobileDevice) => {
     setSelectedDevice(device);
@@ -60,7 +48,7 @@ const BookRepairPage = () => {
     setSelectedServices(prev => prev.filter(s => s.id !== serviceId));
   };
 
-  const handleShopSelect = (shop: any) => {
+  const handleShopSelect = (shop: { id: string; name: string; [key: string]: any }) => {
     setSelectedShop(shop);
     setActiveTab("details");
   };
@@ -81,13 +69,21 @@ const BookRepairPage = () => {
       return;
     }
 
+    // Validate shopId is a UUID
+    try {
+      z.string().uuid().parse(selectedShop.id);
+    } catch (err) {
+      alert("Invalid shop selected. Please choose again.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const bookingData = {
         customer: customerInfo,
         device: selectedDevice,
-        services: cart,
+        services: cart, // cart contains UUID strings
         shopId: selectedShop.id,
         totalAmount: getTotalPrice(),
         pickupPreferred: customerInfo.pickupPreferred || false,
